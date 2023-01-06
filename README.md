@@ -3,7 +3,7 @@
 This repository contains components to record fixed- and variable- size data pieces in the file system
 and to retrieve data recorded within a given time range.
 
-## Recording: main components and the chain of events
+## Recording
 
 ```
  ------------------                         --------------------------------------------------------------
@@ -23,7 +23,7 @@ and to retrieve data recorded within a given time range.
                                                                                  - adds records to the file(s)
 ```
 
-## Reading: main components and the chain of events
+## Reading
 
 ```
  ------------------                         --------------------------------------------------------------
@@ -42,20 +42,33 @@ and to retrieve data recorded within a given time range.
                                              <--    - returns list of records
 ```
 
-## Sample apps
+## Deliverables
+
+### Share libraries
+
+#### libLogWriter.so 
+Library implements a TCP server to listen for logging requests and to manager the storage folder.
+
+#### libLogReader.so
+Library implements a TCP server to handle requests for the streams and data pieces available for a given time range.
+
+#### libLogClient.so
+Library implements client's side functionality for logging data as well as to retrieve it.
+
+### Sample apps
 There are several apps which are intended to demonstrate the logging use:
 
-### Logger
-File reader_demo.cpp implements both logger and scanner functionality.
+#### Logger example.
+File logger_demo.cpp implements both logger and scanner functionality.
 It uses /tmp folder to store the log files and spins the Logger server at port 59999.
 Port 49998 is used to handle reading requests.
 
-### Logging client demo
+#### Logging client example
 File client_demo.cpp implements a simple app which creates logging stream "Sample" with
 variable length records, then reads lines from the standard
 input (keyboard) and sends them to the logger.
 
-### Reading client demo
+#### Reading client example
 File reader_demo.cpp implements an example of how to read logs.
 First, it requests all streams available by setting start time to 0 and end time - to UINT64_MAX.
 It prints the response to the console and then waits for user to enter the file name.

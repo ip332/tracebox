@@ -1,9 +1,9 @@
 #include <string.h>
 
+#include <chrono>
 #include <iostream>
 
 #include "log_client.h"
-#include "logger.pb.h"
 
 int main(int argc, char *argv[]) {
     using namespace embark::logger;

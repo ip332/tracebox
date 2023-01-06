@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "logger.pb.h"
 #include "reader_client.h"
 
 // TODO: move the stream and size into the arguments list

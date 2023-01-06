@@ -1,3 +1,3 @@
-define_lib(Reader SHARED)
-add_dependencies(Reader protos)
-target_link_libraries(Reader TcpServer protos)
+define_lib(LogReader SHARED)
+add_dependencies(LogReader protos)
+target_link_libraries(LogReader TcpServer protos ${PROTOBUF_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})

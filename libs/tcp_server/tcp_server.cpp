@@ -8,7 +8,6 @@
 
 #include <thread>
 
-#include "logger.pb.h"
 #include "tcp_socket.h"
 
 namespace embark {
