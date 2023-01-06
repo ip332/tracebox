@@ -2,10 +2,12 @@
 
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <thread>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#include <thread>
+
 #include "logger.pb.h"
 #include "tcp_socket.h"
 
@@ -28,7 +30,8 @@ bool Server::start(uint32_t port) {
     listening_fd_ = socket(AF_INET, SOCK_STREAM, 0);
     // Set options
     int options = 1;
-    if (setsockopt(listening_fd_, SOL_SOCKET, SO_REUSEADDR, &options, sizeof(options)) < 0) {
+    if (setsockopt(listening_fd_, SOL_SOCKET, SO_REUSEADDR, &options,
+                   sizeof(options)) < 0) {
         std::cerr << "setsockopt error: " << errno << std::endl;
         return false;
     }
@@ -54,14 +57,16 @@ bool Server::start(uint32_t port) {
     std::thread([this]() {
         running_ = true;
         epoll_event events[kMaxClients + 1];
-        while(running_) {
-            int events_count = epoll_wait(epoll_fd_, events, kMaxClients + 1, 1000);
+        while (running_) {
+            int events_count =
+                epoll_wait(epoll_fd_, events, kMaxClients + 1, 1000);
             for (int i = 0; i < events_count; i++) {
                 if (events[i].data.fd == listening_fd_) {
                     // Handle incoming connection request
                     sockaddr_in sockaddrIn;
                     uint32_t length = sizeof(sockaddrIn);
-                    int fd = accept(listening_fd_,(sockaddr*)&sockaddrIn, &length);
+                    int fd =
+                        accept(listening_fd_, (sockaddr *)&sockaddrIn, &length);
                     if (fd == -1) {
                         std::cerr << "accept error: " << errno << std::endl;
                     } else {
@@ -96,19 +101,20 @@ bool Server::registerFd(int fd) {
     fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
     epoll_event event;
-    event.events = EPOLLIN  | // The associated file is available for read(2) operations.
-                   EPOLLRDHUP  | // Stream socket peer closed connection, or shut down writing half of connection.
-                   EPOLLPRI    | // There is an exceptional condition on the file descriptor.
-                   EPOLLERR    | // Error condition happened on the associated file
-                   EPOLLHUP;     // Hang up happened on the associated file descriptor.
+    event.events =
+        EPOLLIN |  // The associated file is available for read(2) operations.
+        EPOLLRDHUP |  // Stream socket peer closed connection, or shut down
+                      // writing half of connection.
+        EPOLLPRI |  // There is an exceptional condition on the file descriptor.
+        EPOLLERR |  // Error condition happened on the associated file
+        EPOLLHUP;   // Hang up happened on the associated file descriptor.
     event.data.fd = fd;
-    if(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &event)) {
+    if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &event)) {
         return false;
     }
     client_fd_.push_back(fd);
     TcpSocket::setTimeout(fd);
     return true;
-
 }
 
 void Server::unregisterFd(int fd) {
@@ -123,7 +129,8 @@ void Server::unregisterFd(int fd) {
 bool Server::handleLogRequest(int fd) {
     auto buffer = TcpSocket::readData(fd);
     if (buffer->empty()) {
-        std::cerr << "Error reading from client's socket: " << errno << std::endl;
+        std::cerr << "Error reading from client's socket: " << errno
+                  << std::endl;
         return false;
     }
 
@@ -135,4 +142,5 @@ bool Server::handleLogRequest(int fd) {
     return ret;
 }
 
-}}
+}  // namespace logger
+}  // namespace embark

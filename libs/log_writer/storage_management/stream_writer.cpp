@@ -1,16 +1,16 @@
 #include "stream_writer.h"
 
-#include <memory>
-#include <ctime>
 #include <cstring>
+#include <ctime>
 #include <filesystem>
+#include <memory>
 #include <sstream>
 #include <string_view>
 
 namespace embark {
 namespace logger {
 
-int StreamWriter::openFile(const LogRequest & request) {
+int StreamWriter::openFile(const LogRequest &request) {
     name_ = request.channel();
     record_size_ = request.size();
     return reopenFile(request.time_ns());
@@ -29,7 +29,8 @@ int StreamWriter::reopenFile(uint64_t time_ns) {
     int result = writeHeader(&index_, time_ns, kIndexFile);
     if (result && record_size_ == 0) {
         // Create data file
-        data_.open(folder_ + "/" + file_name + ".data", std::ios::binary | std::ios::app);
+        data_.open(folder_ + "/" + file_name + ".data",
+                   std::ios::binary | std::ios::app);
         int data_result = writeHeader(&data_, time_ns, kDataFile);
         offset_ = sizeof(LogFileHeader);
         if (data_result < 0) {
@@ -65,7 +66,8 @@ std::string StreamWriter::fileName(uint64_t time_ns) {
     return ss.str();
 }
 
-int StreamWriter::writeHeader(std::ofstream *stream, uint64_t time_ns, uint8_t type) {
+int StreamWriter::writeHeader(std::ofstream *stream, uint64_t time_ns,
+                              uint8_t type) {
     if (stream->is_open()) {
         LogFileHeader header;
         header.header_size_ = sizeof(header);
@@ -73,8 +75,9 @@ int StreamWriter::writeHeader(std::ofstream *stream, uint64_t time_ns, uint8_t t
         header.record_size_ = record_size_;
         memset(header.name_, 0, sizeof(header.name_));
         header.file_type_ = type;
-        memcpy(header.name_, name_.data(), std::min<size_t>(sizeof(header.name_), name_.length()));
-        stream->write(reinterpret_cast<char*>(&header), sizeof(header));
+        memcpy(header.name_, name_.data(),
+               std::min<size_t>(sizeof(header.name_), name_.length()));
+        stream->write(reinterpret_cast<char *>(&header), sizeof(header));
         return sizeof(header);
     }
     return -EINVAL;
@@ -89,11 +92,13 @@ int StreamWriter::write(uint64_t time_ns, const std::string &data) {
         // Fixed length record
         if (data.size() == record_size_) {
             // Write time, then the actual bytes.
-            index_.write(reinterpret_cast<char*>(&time_ns), sizeof(time_ns));
+            index_.write(reinterpret_cast<char *>(&time_ns), sizeof(time_ns));
             index_.write(data.data(), record_size_);
             result = record_size_ + sizeof(time_ns);
         } else {
-            std::cerr << "Couldn't write record of " << data.size() << " bytes into file with records size " << record_size_ << std::endl;
+            std::cerr << "Couldn't write record of " << data.size()
+                      << " bytes into file with records size " << record_size_
+                      << std::endl;
             return -EINVAL;
         }
     } else {
@@ -115,15 +120,16 @@ int StreamWriter::write(uint64_t time_ns, const std::string &data) {
         }
         // Variable length record:
         // 1. Write time and offset into the index file.
-        index_.write(reinterpret_cast<char*>(&time_ns), sizeof(time_ns));
-        index_.write(reinterpret_cast<char*>(&offset_), sizeof(offset_));
+        index_.write(reinterpret_cast<char *>(&time_ns), sizeof(time_ns));
+        index_.write(reinterpret_cast<char *>(&offset_), sizeof(offset_));
         // 2. Write time, size and the data into the data file.
-        data_.write(reinterpret_cast<char*>(&time_ns), sizeof(time_ns));
-        data_.write(reinterpret_cast<char*>(&size), sizeof(size));
+        data_.write(reinterpret_cast<char *>(&time_ns), sizeof(time_ns));
+        data_.write(reinterpret_cast<char *>(&size), sizeof(size));
         data_.write(data.data(), size);
         result += total_length;
     }
     return result;
 }
 
-}}
+}  // namespace logger
+}  // namespace embark

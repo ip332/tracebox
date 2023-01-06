@@ -1,8 +1,9 @@
 #pragma once
 
 #include <filesystem>
-#include "logger.pb.h"
 #include <string>
+
+#include "logger.pb.h"
 
 namespace embark {
 namespace logger {
@@ -13,9 +14,11 @@ class StorageScanner {
     std::string folder_;
 
     // Extracts all files names from the given directory matching the time range
-    void extractStreams(const std::filesystem::path & path, uint64_t start, uint64_t end,
+    void extractStreams(const std::filesystem::path& path, uint64_t start,
+                        uint64_t end,
                         std::shared_ptr<DataStreamsResponse> result);
-public:
+
+   public:
     explicit StorageScanner(std::string folder) : folder_(folder) {}
 
     // Delete copy / assignment constructors
@@ -25,12 +28,16 @@ public:
     StorageScanner& operator=(StorageScanner&&) = delete;
 
     // Returns list of data channels available for the given time interval.
-    std::shared_ptr<DataStreamsResponse> getStreams(uint64_t start, uint64_t end);
+    std::shared_ptr<DataStreamsResponse> getStreams(uint64_t start,
+                                                    uint64_t end);
 
     // Returns the data according to the requested parameters
-    std::shared_ptr<DataStreamsResponse> getData(const std::string & file, uint64_t start_time, uint64_t end_time,
-                                              uint32_t start_idx, uint32_t max_size);
+    std::shared_ptr<DataStreamsResponse> getData(const std::string& file,
+                                                 uint64_t start_time,
+                                                 uint64_t end_time,
+                                                 uint32_t start_idx,
+                                                 uint32_t max_size);
 };
 
-}}
-
+}  // namespace logger
+}  // namespace embark

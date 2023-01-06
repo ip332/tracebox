@@ -1,25 +1,27 @@
 #pragma once
 
-#include <string>
-#include <string.h>
-#include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
+
 #include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace embark {
 namespace logger {
 
-// This header implements a generic TCP functionality commons for client and server.
+// This header implements a generic TCP functionality commons for client and
+// server.
 class TcpSocket {
-public:
+   public:
     // Sets the timeout for the given socket handle
     static void setTimeout(int fd, int sec = 1, int usec = 0) {
         struct timeval timeout;
-        timeout.tv_sec  = sec;
+        timeout.tv_sec = sec;
         timeout.tv_usec = usec;
         // Sending timeout
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
@@ -28,7 +30,7 @@ public:
     }
 
     // Sends a data piece to the given socket handle, size first.
-    static bool sendData(int fd, const std::string_view & data) {
+    static bool sendData(int fd, const std::string_view& data) {
         uint32_t payload_size = data.size();
         // Place everything into a single buffer.
         const size_t buffer_size = sizeof(payload_size) + payload_size;
@@ -38,8 +40,9 @@ public:
 
         // Send this buffer.
         int result = send(fd, buffer.data(), buffer_size, MSG_NOSIGNAL);
-        if ( static_cast<uint32_t>(result) != buffer_size) {
-            std::cerr << "Error sending " << payload_size << " to the log_writer" << std::endl;
+        if (static_cast<uint32_t>(result) != buffer_size) {
+            std::cerr << "Error sending " << payload_size
+                      << " to the log_writer" << std::endl;
             // Let application decide if the connection should be closed.
             return false;
         }
@@ -51,8 +54,10 @@ public:
     static std::unique_ptr<std::string> readData(int fd) {
         auto result = std::make_unique<std::string>();
         uint32_t payload_size;
-        if (recv(fd, &payload_size, sizeof(payload_size), 0) != sizeof(payload_size)) {
-            std::cerr << "Error reading from client's socket: " << errno << std::endl;
+        if (recv(fd, &payload_size, sizeof(payload_size), 0) !=
+            sizeof(payload_size)) {
+            std::cerr << "Error reading from client's socket: " << errno
+                      << std::endl;
             return result;
         }
         // Read the payload into the local buffer.
@@ -60,9 +65,10 @@ public:
         size_t loaded = 0;
 
         while (loaded < payload_size) {
-            auto res = recv(fd, & buffer[loaded], payload_size - loaded, 0);
+            auto res = recv(fd, &buffer[loaded], payload_size - loaded, 0);
             if (res <= 0) {
-                std::cerr << "Error reading from client's socket: " << errno << std::endl;
+                std::cerr << "Error reading from client's socket: " << errno
+                          << std::endl;
                 return result;
             }
             loaded += res;
@@ -72,4 +78,5 @@ public:
     }
 };
 
-}}
+}  // namespace logger
+}  // namespace embark

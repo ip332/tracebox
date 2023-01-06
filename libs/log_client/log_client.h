@@ -1,7 +1,9 @@
 #pragma once
 
-#include <string>
 #include <unistd.h>
+
+#include <string>
+
 #include "tcp_client.h"
 
 namespace embark {
@@ -13,8 +15,9 @@ class LogClient : public TcpClient {
     std::string stream_name_;
     // Stores size for a fixed length stream (0 indicates variable size)
     uint32_t record_size_;
-public:
-    explicit LogClient(const std::string & stream_name, uint32_t record_size = 0)
+
+   public:
+    explicit LogClient(const std::string& stream_name, uint32_t record_size = 0)
         : stream_name_(stream_name), record_size_(0) {}
 
     // Delete copy / assignment constructors
@@ -25,7 +28,8 @@ public:
 
     // Sends a logging request to the log_writer.
     // It must be done after successful connect() and is_connected() calls.
-    bool logData(const std::string & data, uint64_t time);
+    bool logData(const std::string& data, uint64_t time);
 };
 
-}}
+}  // namespace logger
+}  // namespace embark

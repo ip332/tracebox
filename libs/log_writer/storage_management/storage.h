@@ -5,8 +5,9 @@
 namespace embark {
 namespace logger {
 
-// This class implements standard interface to the file system objects in the storage folder.
-// The storage folder is divided onto sub-folders - each one representing a single day recordings.
+// This class implements standard interface to the file system objects in the
+// storage folder. The storage folder is divided onto sub-folders - each one
+// representing a single day recordings.
 class Storage {
     // The maximum value we can fit into 8 digit (YYYYMMDD) integer
     constexpr static int kMaxDay = 99999999;
@@ -27,11 +28,14 @@ class Storage {
     // Finds the oldest folder and removes it from the storage.
     bool removeOldest();
 
-public:
+   public:
     Storage(const std::string &folder, int max_size)
-        : available_bytes_(max_size), folder_path_(folder), folder_(std::make_unique<Folder>(folder)) {}
+        : available_bytes_(max_size),
+          folder_path_(folder),
+          folder_(std::make_unique<Folder>(folder)) {}
 
-    int write(const LogRequest & request);
+    int write(const LogRequest &request);
 };
 
-}}
+}  // namespace logger
+}  // namespace embark

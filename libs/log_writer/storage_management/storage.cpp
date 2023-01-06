@@ -1,5 +1,6 @@
-#include <filesystem>
 #include "storage.h"
+
+#include <filesystem>
 
 namespace embark {
 namespace logger {
@@ -7,22 +8,25 @@ namespace logger {
 // Finds the oldest folder and returns it.
 int Storage::findOldest() {
     int oldest = kMaxDay;
-    for (const auto& entry : std::filesystem::directory_iterator(folder_path_)) {
+    for (const auto& entry :
+         std::filesystem::directory_iterator(folder_path_)) {
         if (entry.is_directory()) {
             try {
                 int day = std::stoi(entry.path().filename().string());
                 if (day < oldest) {
                     oldest = day;
                 }
-            } catch(...) {}
+            } catch (...) {
+            }
         }
     }
     return oldest;
 }
 
 // Removes the folder and it content
-void Storage::deleteFolder(const std::string &folder) {
-    for (const auto& entry : std::filesystem::directory_iterator(folder_path_ + "/" + folder)) {
+void Storage::deleteFolder(const std::string& folder) {
+    for (const auto& entry :
+         std::filesystem::directory_iterator(folder_path_ + "/" + folder)) {
         if (!entry.is_directory()) {
             available_bytes_ += entry.file_size();
         }
@@ -40,7 +44,7 @@ bool Storage::removeOldest() {
     return true;
 }
 
-int Storage::write(const LogRequest & request) {
+int Storage::write(const LogRequest& request) {
     // Check available size
     while (maxRecordSize(request.data().size()) > available_bytes_) {
         if (!removeOldest()) {
@@ -54,5 +58,5 @@ int Storage::write(const LogRequest & request) {
     return folder_->write(request);
 }
 
-
-}}
+}  // namespace logger
+}  // namespace embark

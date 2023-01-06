@@ -1,18 +1,20 @@
 #pragma once
 
-#include <string>
 #include <unistd.h>
-#include "tcp_client.h"
+
+#include <string>
+
 #include "logger.pb.h"
+#include "tcp_client.h"
 
 namespace embark {
 namespace logger {
 
-// This class implements a client to send reading requests to the log reading server.
+// This class implements a client to send reading requests to the log reading
+// server.
 class LogReadClient : public TcpClient {
-
-    template<typename S, typename R>
-    std::shared_ptr<R> getResponse(const S & request) {
+    template <typename S, typename R>
+    std::shared_ptr<R> getResponse(const S& request) {
         std::string serialized;
         request.SerializePartialToString(&serialized);
 
@@ -24,22 +26,27 @@ class LogReadClient : public TcpClient {
         if (response->empty()) {
             return result;
         }
-        if (result->ParseFromArray(response->data() ,response->size())) {
+        if (result->ParseFromArray(response->data(), response->size())) {
             return result;
         } else {
             std::cerr << "Error parsing DataStreamsResponse" << std::endl;
         }
         return result;
     }
-public:
+
+   public:
     // Requests list of log streams for the given time range
-    // Note: It must be done after successful connect() call (see Client::connect()).
-    std::shared_ptr<DataStreamsResponse> getStreams(uint64_t start, uint64_t end,
-                                                    uint32_t start_idx = 0, uint32_t max_size = UINT32_MAX);
+    // Note: It must be done after successful connect() call (see
+    // Client::connect()).
+    std::shared_ptr<DataStreamsResponse> getStreams(
+        uint64_t start, uint64_t end, uint32_t start_idx = 0,
+        uint32_t max_size = UINT32_MAX);
 
     // Returns the data according to the requested parameters
-    std::shared_ptr<DataStreamsResponse> getData(const std::string & file, uint64_t start_time, uint64_t end_time,
-                                                 uint32_t start_idx = 0, uint32_t max_size = UINT32_MAX);
+    std::shared_ptr<DataStreamsResponse> getData(
+        const std::string& file, uint64_t start_time, uint64_t end_time,
+        uint32_t start_idx = 0, uint32_t max_size = UINT32_MAX);
 };
 
-}}
+}  // namespace logger
+}  // namespace embark

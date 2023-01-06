@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 
     LogReader reader(49998, folder);
 
-    while(true) {
+    while (true) {
         sleep(1);
     }
 }

@@ -1,5 +1,7 @@
-#include <iostream>
 #include "log_client.h"
+
+#include <iostream>
+
 #include "logger.pb.h"
 
 namespace embark {
@@ -7,7 +9,8 @@ namespace logger {
 
 bool LogClient::logData(const std::string &data, uint64_t time_ns) {
     if (record_size_ && (data.size() != record_size_)) {
-        std::cerr << "Invalid record size: " << data.size() << ", expected " << record_size_ << std::endl;
+        std::cerr << "Invalid record size: " << data.size() << ", expected "
+                  << record_size_ << std::endl;
         return false;
     }
     // Put all parameters into a request structure.
@@ -25,4 +28,5 @@ bool LogClient::logData(const std::string &data, uint64_t time_ns) {
     return sendData(serialized);
 }
 
-}}
+}  // namespace logger
+}  // namespace embark

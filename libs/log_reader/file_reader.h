@@ -1,17 +1,18 @@
 #pragma once
 
-#include "logger.pb.h"
-#include "data_types.h"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <filesystem>
+
+#include "data_types.h"
+#include "logger.pb.h"
 
 namespace embark {
 namespace logger {
 
 // A single read-only file representation
 class FileReader {
-protected:
+   protected:
     // File path
     std::string path_;
     // Input stream.
@@ -63,8 +64,10 @@ protected:
         last_error_ = error;
         std::cerr << error << std::endl;
     }
-public:
-    // The first argument is the absolute path of the file, and the second should be set to false if it is a data file.
+
+   public:
+    // The first argument is the absolute path of the file, and the second
+    // should be set to false if it is a data file.
     FileReader(const std::filesystem::path &path) : path_(path) {
         // Initialize the stream.
         if_.open(path, std::ios::binary);
@@ -74,10 +77,11 @@ public:
         fileSize(path);
     }
 
-    const std::string & last_error() const { return last_error_; }
+    const std::string &last_error() const { return last_error_; }
 
     // Returns the stream name from the file header.
     std::string name() const { return header_ ? header_->name_ : ""; }
 };
 
-}}
+}  // namespace logger
+}  // namespace embark

@@ -1,6 +1,7 @@
 #include <iostream>
-#include "reader_client.h"
+
 #include "logger.pb.h"
+#include "reader_client.h"
 
 // TODO: move the stream and size into the arguments list
 int main(int argc, char *argv[]) {
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
     auto list = client.getStreams(0, UINT64_MAX);
     std::cout << list->DebugString() << std::endl;
 
-    while(true) {
+    while (true) {
         std::cout << "Enter the file name: ";
         std::string filename;
         std::getline(std::cin, filename);

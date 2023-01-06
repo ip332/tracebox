@@ -1,12 +1,13 @@
 #pragma once
 
-#include "logger.pb.h"
-#include "data_types.h"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <filesystem>
-#include "idx_file_reader.h"
+
 #include "data_file_reader.h"
+#include "data_types.h"
+#include "idx_file_reader.h"
+#include "logger.pb.h"
 
 namespace embark {
 namespace logger {
@@ -20,13 +21,14 @@ class StreamReader {
     // Overall stream status
     StreamStatus status_;
 
-public:
+   public:
     // The only argument is the absolute path to the .idx file
-    StreamReader(const std::filesystem::path & path);
+    StreamReader(const std::filesystem::path &path);
 
     // Returns true if at least one record belongs to the given time range.
     bool matchTime(uint64_t start, uint64_t end) const {
-        return status_ == StreamStatus::kHealthy && index_ && index_->matchTime(start, end);
+        return status_ == StreamStatus::kHealthy && index_ &&
+               index_->matchTime(start, end);
     }
 
     std::string streamName() const { return index_->name(); }
@@ -40,10 +42,11 @@ public:
     bool read(size_t index, DataPiece *payload);
 
     // Returns the last error reported by the input stream.
-    const std::string & last_error() const {
-        return index_->last_error().empty() ? data_->last_error() : index_->last_error();
+    const std::string &last_error() const {
+        return index_->last_error().empty() ? data_->last_error()
+                                            : index_->last_error();
     }
 };
 
-}}
-
+}  // namespace logger
+}  // namespace embark

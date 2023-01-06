@@ -3,15 +3,19 @@
 namespace embark {
 namespace logger {
 
-StreamReader::StreamReader(const std::filesystem::path &path) : status_(StreamStatus::kUnknown) {
+StreamReader::StreamReader(const std::filesystem::path &path)
+    : status_(StreamStatus::kUnknown) {
     if (!is_regular_file(path)) {
-        std::cerr << "File " << path << " is not a regular file and cannot be handled" << std::endl;
+        std::cerr << "File " << path
+                  << " is not a regular file and cannot be handled"
+                  << std::endl;
         return;
     }
     // Get basename by ignoring ".idx" extension
     auto const ext_pos = path.filename().string().find(".idx");
     if (ext_pos == std::string::npos) {
-        std::cerr << "File " << path << " doesn't have '.idx' extension" << std::endl;
+        std::cerr << "File " << path << " doesn't have '.idx' extension"
+                  << std::endl;
         return;
     }
     // Initialize the stream.
@@ -51,4 +55,5 @@ bool StreamReader::read(size_t index, DataPiece *payload) {
     return true;
 }
 
-}}
+}  // namespace logger
+}  // namespace embark

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <string>
 #include <unistd.h>
+
+#include <string>
+
 #include "tcp_socket.h"
 
 namespace embark {
@@ -11,7 +13,8 @@ namespace logger {
 class TcpClient {
     // Socket handle
     int fd_ = -1;
-public:
+
+   public:
     TcpClient() {}
 
     virtual ~TcpClient() { disconnect(); }
@@ -23,8 +26,9 @@ public:
     TcpClient& operator=(TcpClient&&) = delete;
 
     // Connects to the tcp_server. Returns false if it is unavailable.
-    // It is up to the application to decide what to do in such case with the data it needs to log.
-    bool connect(const std::string &ip, uint32_t port);
+    // It is up to the application to decide what to do in such case with the
+    // data it needs to log.
+    bool connect(const std::string& ip, uint32_t port);
 
     bool is_connected() const { return fd_ > 0; }
 
@@ -36,18 +40,17 @@ public:
         fd_ = -1;
     }
 
-    void setTimeout(int sec, int usec ) {
+    void setTimeout(int sec, int usec) {
         TcpSocket::setTimeout(fd_, sec, usec);
     }
 
     // Sends a data piece to the tcp_server.
-    bool sendData(const std::string & data) {
+    bool sendData(const std::string& data) {
         return TcpSocket::sendData(fd_, data);
     }
 
-    std::unique_ptr<std::string> readData() {
-        return TcpSocket::readData(fd_);
-    }
+    std::unique_ptr<std::string> readData() { return TcpSocket::readData(fd_); }
 };
 
-}}
+}  // namespace logger
+}  // namespace embark

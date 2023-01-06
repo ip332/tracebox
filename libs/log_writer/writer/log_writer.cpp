@@ -15,8 +15,7 @@ void LogWriter::writingThread() {
 }
 
 LogWriter::LogWriter(std::shared_ptr<Storage> storage)
-    : storage_(storage), thread_(&LogWriter::writingThread, this) {
-}
+    : storage_(storage), thread_(&LogWriter::writingThread, this) {}
 
 LogWriter::~LogWriter() {
     running_ = false;
@@ -27,7 +26,7 @@ LogWriter::~LogWriter() {
     }
 }
 
-void LogWriter::add(const LogRequest & request) {
+void LogWriter::add(const LogRequest& request) {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         queue_.push(request);
@@ -35,4 +34,5 @@ void LogWriter::add(const LogRequest & request) {
     notify();
 }
 
-}}
+}  // namespace logger
+}  // namespace embark
