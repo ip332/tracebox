@@ -38,23 +38,16 @@ class FileReader {
 
     // Reads the file's header and returns it.
     bool getHeader() {
-        std::unique_ptr<LogFileHeader> result;
         if (!if_.is_open()) {
             log_error("Couldn't open file " + path_);
             return false;
         }
-        uint16_t size = 0;
-        // Read header's size
-        if_.read(reinterpret_cast<char *>(&size), sizeof(size));
-        if (!if_) {
-            log_error("Couldn't read header's size from " + path_);
-            return false;
-        }
         header_ = std::make_unique<LogFileHeader>();
-        if_.read(reinterpret_cast<char *>(result.get()), size);
+        if_.read(reinterpret_cast<char *>(header_.get()),
+                 sizeof(LogFileHeader));
         if (!if_) {
             log_error("Couldn't read LogFileHeader from " + path_);
-            result.reset();
+            header_.reset();
             return false;
         }
         return true;
@@ -69,12 +62,14 @@ class FileReader {
     // The first argument is the absolute path of the file, and the second
     // should be set to false if it is a data file.
     FileReader(const std::filesystem::path &path) : path_(path) {
-        // Initialize the stream.
-        if_.open(path, std::ios::binary);
-        if (!getHeader()) {
-            return;
-        }
         fileSize(path);
+        if (size_bytes_) {
+            // Initialize the stream.
+            if_.open(path, std::ios::binary);
+            if (!getHeader()) {
+                return;
+            }
+        }
     }
 
     const std::string &last_error() const { return last_error_; }

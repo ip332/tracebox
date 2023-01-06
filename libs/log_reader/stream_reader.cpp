@@ -12,7 +12,7 @@ StreamReader::StreamReader(const std::filesystem::path &path)
         return;
     }
     // Get basename by ignoring ".idx" extension
-    auto const ext_pos = path.filename().string().find(".idx");
+    auto const ext_pos = path.string().find(".idx");
     if (ext_pos == std::string::npos) {
         std::cerr << "File " << path << " doesn't have '.idx' extension"
                   << std::endl;
@@ -21,11 +21,13 @@ StreamReader::StreamReader(const std::filesystem::path &path)
     // Initialize the stream.
     index_ = std::make_unique<IndexFileReader>(path);
 
-    if (index_->records_cnt() > 0) {
-        status_ = StreamStatus::kHealthy;
+    if (index_->records_cnt() == 0) {
+        status_ = StreamStatus::kEmpty;
+        return;
     }
-    if (index_->fixedSize()) {
-        auto basename = path.filename().string().substr(0, ext_pos);
+    status_ = StreamStatus::kHealthy;
+    if (!index_->fixedSize()) {
+        auto basename = path.string().substr(0, ext_pos);
         data_ = std::make_unique<DataFileReader>(basename + ".data");
         if (data_->name() != index_->name()) {
             status_ = StreamStatus::kHeadersDifferent;
@@ -33,20 +35,23 @@ StreamReader::StreamReader(const std::filesystem::path &path)
     }
 }
 
-bool StreamReader::read(size_t index, DataPiece *payload) {
-    auto time_ns = index_->timeOf(index);
+bool StreamReader::read(size_t rec_index, DataPiece *payload) {
+    if (status_ != kHealthy) {
+        return false;
+    }
+    auto time_ns = index_->timeOf(rec_index);
     if (!time_ns) {
         return false;
     }
     if (index_->fixedSize()) {
         std::string data;
-        if (!index_->readPayload(&data)) {
+        if (!index_->readPayload(rec_index, &data)) {
             return false;
         }
         payload->set_time_ns(time_ns);
         payload->set_data(data);
     } else {
-        auto offset = index_->readOffset();
+        auto offset = index_->readOffset(rec_index);
         if (!offset) {
             return false;
         }

@@ -1,5 +1,5 @@
-add_executable(data_logger logger_main.cpp)
-target_link_libraries(data_logger TcpServer LogWriter StorageManagement Reader protos)
+add_executable(logger_demo logger_demo.cpp)
+target_link_libraries(logger_demo TcpServer LogWriter StorageManagement Reader protos)
 
 add_executable(client_demo client_demo.cpp)
 target_link_libraries(client_demo LogClient protos)

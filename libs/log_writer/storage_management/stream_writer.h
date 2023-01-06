@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -11,6 +12,9 @@ namespace logger {
 
 // A single log stream handler.
 class StreamWriter {
+    // TODO: increase this const to reduce CPU/IO usage under realistic load.
+    constexpr static size_t kFlushIntervalSeconds = 1;
+
     // Absolute parent folder path
     std::string folder_;
     // Stream name
@@ -22,6 +26,8 @@ class StreamWriter {
     // Actual streams:
     std::ofstream index_;  // always created
     std::ofstream data_;   // only for variable length records.
+    // Last write operation when the streams were flushed to the file system
+    std::chrono::system_clock::time_point last_flush_;
 
     // Creates file name from the current time (HHMMSS), stream name and the
     // record size.

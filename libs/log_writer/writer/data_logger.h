@@ -16,7 +16,7 @@ namespace logger {
 // written to the file system using Storage class.
 class DataLogger {
     // Handles incoming request into a LogRequest object.
-    logger::Server server_;
+    Server server_;
     // Handles queuing incoming requests and writing them to the file system.
     LogWriter writer_;
     // Makes sure no incoming requests will be processed during initialization.

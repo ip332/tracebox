@@ -36,6 +36,7 @@ bool TcpClient::connect(const std::string &ip_addr, uint32_t port) {
     if (::connect(fd, (struct sockaddr *)&dest, sizeof(dest))) {
         // Do not print an error message and let the application deciding if it
         // is needed or not.
+        std::cerr << "Error: " << errno << std::endl;
         disconnect();
         return -1;
     }

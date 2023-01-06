@@ -9,7 +9,7 @@ bool Folder::create(uint64_t time_ns) {
     yyyymmdd_ = Time2YYYYMMDD(time_ns);
     folder_ = folder_ + "/" + std::to_string(yyyymmdd_);
     if (!std::filesystem::exists(folder_) &&
-        !std::filesystem::create_directory(folder_)) {
+        !std::filesystem::create_directories(folder_)) {
         std::cerr << "Couldn't create folder " << folder_ << std::endl;
         yyyymmdd_ = 0;
         return false;

@@ -39,13 +39,16 @@ class StreamReader {
     size_t records_cnt() const { return index_->records_cnt(); }
 
     // Returns the payload for a given record index.
-    bool read(size_t index, DataPiece *payload);
+    bool read(size_t rec_index, DataPiece *payload);
 
     // Returns the last error reported by the input stream.
     const std::string &last_error() const {
         return index_->last_error().empty() ? data_->last_error()
                                             : index_->last_error();
     }
+
+    uint64_t start_ns() const { return index_->start_ns(); }
+    uint64_t end_ns() const { return index_->end_ns(); }
 };
 
 }  // namespace logger

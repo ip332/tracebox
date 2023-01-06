@@ -17,12 +17,13 @@ class DataFileReader : public FileReader {
             log_error("File " + path_ + " was not opened");
             return 0;
         }
-        if (offset >= (size_bytes_ - sizeof(VariableRecordDataHeader) - 1) ||
+        if (size_bytes_ == 0 ||
+            offset >= (size_bytes_ - sizeof(VariableRecordDataHeader) - 1) ||
             offset < header_->header_size_ ||
             header_->file_type_ != kDataFile) {
             log_error("Invalid offset " + std::to_string(offset) +
                       " for file " + path_ + " which has " +
-                      std::to_string(size_bytes_));
+                      std::to_string(size_bytes_) + " bytes");
             return 0;
         }
         if_.seekg(offset);
@@ -38,20 +39,16 @@ class DataFileReader : public FileReader {
                       " from " + path_ + " at " + std::to_string(offset));
             return 0;
         }
-        if (!result->has_data()) {
-            result->set_data("");
-        }
-        if (rec_header.size_ > result->data().capacity()) {
-            result->mutable_data()->resize(rec_header.size_);
-        }
-        result->set_time_ns(rec_header.time_ns_);
-        if_.read(result->mutable_data()->data(), rec_header.size_);
+        std::vector<char> buffer(rec_header.size_);
+        if_.read(buffer.data(), rec_header.size_);
         if (!if_) {
             log_error("Couldn't read " + std::to_string(rec_header.size_) +
                       " from " + path_ + " at " +
                       std::to_string(offset + sizeof(rec_header)));
             return 0;
         }
+        result->set_time_ns(rec_header.time_ns_);
+        result->set_data(buffer.data(), rec_header.size_);
         return rec_header.size_;
     }
 };

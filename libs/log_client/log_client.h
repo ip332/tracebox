@@ -18,7 +18,7 @@ class LogClient : public TcpClient {
 
    public:
     explicit LogClient(const std::string& stream_name, uint32_t record_size = 0)
-        : stream_name_(stream_name), record_size_(0) {}
+        : stream_name_(stream_name), record_size_(record_size) {}
 
     // Delete copy / assignment constructors
     LogClient(const LogClient&) = delete;

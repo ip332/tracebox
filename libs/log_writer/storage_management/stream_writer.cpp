@@ -40,6 +40,7 @@ int StreamWriter::reopenFile(uint64_t time_ns) {
         }
         result += data_result;
     }
+    last_flush_ = std::chrono::system_clock::now();
     return result;
 }
 
@@ -78,6 +79,7 @@ int StreamWriter::writeHeader(std::ofstream *stream, uint64_t time_ns,
         memcpy(header.name_, name_.data(),
                std::min<size_t>(sizeof(header.name_), name_.length()));
         stream->write(reinterpret_cast<char *>(&header), sizeof(header));
+        stream->flush();
         return sizeof(header);
     }
     return -EINVAL;
@@ -88,12 +90,21 @@ int StreamWriter::write(uint64_t time_ns, const std::string &data) {
     if (!index_.is_open()) {
         return -EINVAL;
     }
+    bool flush = false;
+    std::chrono::duration<double> seconds_from_last_flush =
+        std::chrono::system_clock::now() - last_flush_;
+    if (seconds_from_last_flush.count() > kFlushIntervalSeconds) {
+        flush = true;
+    }
     if (record_size_) {
         // Fixed length record
         if (data.size() == record_size_) {
             // Write time, then the actual bytes.
             index_.write(reinterpret_cast<char *>(&time_ns), sizeof(time_ns));
             index_.write(data.data(), record_size_);
+            if (flush) {
+                index_.flush();
+            }
             result = record_size_ + sizeof(time_ns);
         } else {
             std::cerr << "Couldn't write record of " << data.size()
@@ -122,10 +133,19 @@ int StreamWriter::write(uint64_t time_ns, const std::string &data) {
         // 1. Write time and offset into the index file.
         index_.write(reinterpret_cast<char *>(&time_ns), sizeof(time_ns));
         index_.write(reinterpret_cast<char *>(&offset_), sizeof(offset_));
+        if (flush) {
+            index_.flush();
+        }
         // 2. Write time, size and the data into the data file.
         data_.write(reinterpret_cast<char *>(&time_ns), sizeof(time_ns));
         data_.write(reinterpret_cast<char *>(&size), sizeof(size));
         data_.write(data.data(), size);
+        if (flush) {
+            data_.flush();
+        }
+        // Update the offset in data file.
+        offset_ += sizeof(time_ns) + sizeof(size) + size;
+        // Update the total number of bytes written.
         result += total_length;
     }
     return result;

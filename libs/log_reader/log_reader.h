@@ -12,7 +12,7 @@ namespace logger {
 // DataStreamPieces protos.
 class LogReader {
     // Handles incoming requests
-    logger::Server server_;
+    Server server_;
     // Actual reader
     StorageScanner scanner_;
     // Makes sure no incoming requests will be processed during initialization.

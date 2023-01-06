@@ -1,18 +1,31 @@
+#include <string.h>
+
 #include <iostream>
 
 #include "log_client.h"
 #include "logger.pb.h"
 
-// TODO: move the stream and size into the arguments list
 int main(int argc, char *argv[]) {
     using namespace embark::logger;
 
-    std::string stream("Sample");
-    LogClient client(stream, 0);
+    if (argc < 2 || argc > 3) {
+        std::cerr << "Usage: client_demo <StreamName> [record_size]"
+                  << std::endl;
+        return 1;
+    }
+    size_t record_size = 0;
+    if (argc == 3) {
+        record_size = std::stoul(argv[2]);
+    }
+    std::string stream(argv[1]);
+    LogClient client(stream, record_size);
 
     while (true) {
         std::string record;
         std::getline(std::cin, record);
+        if (record.empty()) {
+            continue;
+        }
         if (!client.is_connected()) {
             while (!client.connect("127.0.0.1", 49999)) {
                 sleep(1);
@@ -20,6 +33,9 @@ int main(int argc, char *argv[]) {
             }
         }
         using namespace std::chrono;
+        if (record_size) {
+            record.resize(record_size, ' ');
+        }
         if (!client.logData(record,
                             time_point_cast<nanoseconds>(system_clock::now())
                                 .time_since_epoch()

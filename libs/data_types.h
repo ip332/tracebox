@@ -52,8 +52,9 @@ struct VariableRecordDataHeader {
 inline size_t maxRecordSize(int size) {
     // In the worst case scenario, we will create two files (index, data) and
     // add one record in each.
-    return 2 * sizeof(LogFileHeader) + sizeof(VariableRecordIdx) +
+    size_t result = 2 * sizeof(LogFileHeader) + sizeof(VariableRecordIdx) +
            sizeof(VariableRecordDataHeader) + size;
+    return result;
 }
 
 // Returns the day, extracted from the given time_ns, in YYYYMMDD format

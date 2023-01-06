@@ -19,7 +19,7 @@ namespace logger {
 class TcpSocket {
    public:
     // Sets the timeout for the given socket handle
-    static void setTimeout(int fd, int sec = 1, int usec = 0) {
+    static void setTimeout(int fd, int sec = 2, int usec = 0) {
         struct timeval timeout;
         timeout.tv_sec = sec;
         timeout.tv_usec = usec;

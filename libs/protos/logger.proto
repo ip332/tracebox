@@ -40,9 +40,10 @@ message DataStreamsRequest {
 enum StreamStatus {
     kUnknown = 0;
     kHealthy = 1;
-    kHeaderMismatch = 2;    // Header doesn't match the file name.
-    kHeadersDifferent = 3;  // Index and Data files headers are not the same
-    kIndexMissing = 4;      // Data file exist but the index is missing.
+    kEmpty = 2;
+    kHeaderMismatch = 3;    // Header doesn't match the file name.
+    kHeadersDifferent = 4;  // Index and Data files headers are not the same
+    kIndexMissing = 5;      // Data file exist but the index is missing.
 };
 
 // This format defines a single data stream
@@ -55,6 +56,9 @@ message DataStream {
     optional uint32 records_cnt = 3;
     // Indicates the health status of this stream.
     optional StreamStatus status = 4;
+    // First and last records timestamps
+    optional uint64 start_time_ns = 5;
+    optional uint64 end_time_ns = 6;
 };
 
 // Any data type will be returned using the following format:
