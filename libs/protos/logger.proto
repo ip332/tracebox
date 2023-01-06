@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+// Compatibility notes:
+//  1. Make all fields optional.
+//  2. Never change the field number.
+//  3. If you need to change a field type, then mark the old one deprecated and
+//     create a new one with a different type and field number.
+
+package embark.logger;
+
+// Log request from a client to the logger at run-time.
+message LogRequest {
+    // Channel name
+    optional string channel = 1;
+    // Fixed record size. Not published in case of variable size request.
+    optional uint32 size = 2;
+    // Actual data to save in the file.
+    optional string data = 3;
+    // Time when the data was registered on the client
+    optional uint64 time_ns = 4;
+}
+
+// The following data types are used to query the available streams and to extract specific data sets.
+// - DataStreamRequest is used to request information about available data streams for a given time range.
+// - The result will be returned in a form of array of DataStream objects (each one represents a single file).
+// - Finally the client app can get the content of a specific DataStream object as an array of DataPiece objects.
+message DataStreamsRequest {
+    // Start time in nanoseconds
+    optional uint64 start_ns = 1;
+    // End time in nanoseconds
+    optional uint64 end_ns = 2;
+    // If the file is defined (below) then the actual content will be served.
+    optional string file = 3;
+
+    // Optionally, the request may include parameters to return only a portion of the logged data
+    optional uint32 start_idx = 5;
+    optional uint32 max_count = 6;
+}
+
+enum StreamStatus {
+    kUnknown = 0;
+    kHealthy = 1;
+    kHeaderMismatch = 2;    // Header doesn't match the file name.
+    kHeadersDifferent = 3;  // Index and Data files headers are not the same
+    kIndexMissing = 4;      // Data file exist but the index is missing.
+};
+
+// This format defines a single data stream
+message DataStream {
+    // The stream name. Multiple files might share the same stream name.
+    optional string name = 1;
+    // The absolute path of the index file.
+    optional string file = 2;
+    // Number of records available in the index file.
+    optional uint32 records_cnt = 3;
+    // Indicates the health status of this stream.
+    optional StreamStatus status = 4;
+};
+
+// Any data type will be returned using the following format:
+message DataPiece {
+    // Time when the data was received.
+    optional uint64 time_ns = 1;
+    // Actual data (array o bytes)
+    optional bytes data = 2;
+};
+
+// This type can be used to return the list of data streams or the list of the data pieces.
+message DataStreamsResponse {
+    // Vector of all streams found
+    repeated DataStream stream = 1;
+    // Or, the vector of all data pieces from a single file
+    repeated DataPiece data = 2;
+    // Any error will be reported back via this field.
+    optional string errors = 3;
+};

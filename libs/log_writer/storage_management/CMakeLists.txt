@@ -1,0 +1,2 @@
+define_lib(StorageManagement STATIC)
+add_dependencies(StorageManagement protos)
