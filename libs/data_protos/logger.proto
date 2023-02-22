@@ -67,6 +67,8 @@ message DataPiece {
     optional uint64 time_ns = 1;
     // Actual data (array o bytes)
     optional bytes data = 2;
+    // Stream index (not returned by the server)
+    optional uint32 stream_idx = 3;
 };
 
 // This type can be used to return the list of data streams or the list of the data pieces.

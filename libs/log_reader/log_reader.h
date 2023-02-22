@@ -9,7 +9,7 @@ namespace logger {
 
 // This class spins a TCP server and listens for DataStreamsRequest or
 // DataStream requests, handles them and responses with DataStreams or
-// DataStreamPieces protos.
+// DataStreamPieces data_protos.
 class LogReader {
     // Handles incoming requests
     Server server_;

@@ -5,7 +5,26 @@
 namespace embark {
 namespace logger {
 
-// Finds the oldest folder and returns it.
+size_t Storage::findUsedBytes() {
+    size_t size = 0;
+    for (const auto& entry :
+            std::filesystem::directory_iterator(folder_path_)) {
+        if (entry.is_directory()) {
+            try {
+                for (const auto& file :
+                        std::filesystem::directory_iterator(entry)) {
+                    if (!file.is_directory()) {
+                        // TODO: add check for the file name pattern
+                        size += file.file_size();
+                    }
+                }
+            } catch (...) {
+            }
+        }
+    }
+    return size;
+}
+
 int Storage::findOldest() {
     int oldest = kMaxDay;
     for (const auto& entry :

@@ -60,7 +60,7 @@ There are several apps which are intended to demonstrate the logging use:
 
 #### Logger example.
 File logger_demo.cpp implements both logger and scanner functionality.
-It uses /tmp folder to store the log files and spins the Logger server at port 59999.
+It uses /tmp folder to store the log files and spins the Logger server at port 49999.
 Port 49998 is used to handle reading requests.
 
 #### Logging client example

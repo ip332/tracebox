@@ -19,6 +19,9 @@ class Storage {
     // The active sub-folder which typically represents the today's day.
     std::unique_ptr<Folder> folder_;
 
+    // Scans the storage folder for all existing files to calculate the current size.
+    size_t findUsedBytes();
+
     // Finds the oldest day (YYYYMMDD format) and returns it.
     int findOldest();
 
@@ -32,7 +35,13 @@ class Storage {
     Storage(const std::string &folder, int max_size)
         : available_bytes_(max_size),
           folder_path_(folder),
-          folder_(std::make_unique<Folder>(folder)) {}
+          folder_(std::make_unique<Folder>(folder)) {
+        auto used = findUsedBytes();
+        while (used > available_bytes_) {
+            removeOldest();
+        }
+        available_bytes_ -= used;
+    }
 
     int write(const LogRequest &request);
 };

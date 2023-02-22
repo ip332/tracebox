@@ -13,4 +13,4 @@ endforeach()
 list(APPEND PUBLIC_HEADERS ${PROTO_HDRS})
 set (PUBLIC_HEADERS  ${PUBLIC_HEADERS} PARENT_SCOPE)
 
-define_lib(protos STATIC ${PROTO_SRCS} ${PROTO_HDRS})
+define_lib(data_protos STATIC ${PROTO_SRCS} ${PROTO_HDRS})
