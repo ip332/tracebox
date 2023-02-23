@@ -1,9 +1,7 @@
 #include "streams_combiner.h"
 
 size_t OneSecondData::save(data_writer_t writer) const {
-    for (const auto & it : data_) {
-        writer(it);
-    }
+    writer(data_);
     return data_.size();
 }
 
@@ -19,7 +17,8 @@ void StreamsCombiner::storeData(uint64_t second, const std::vector<embark::logge
     it->second.add(data);
 }
 
-void StreamsCombiner::addRecords(const std::string &stream, const std::vector<embark::logger::DataPiece> &data) {
+void StreamsCombiner::addRecords(const std::string &stream,
+                                 const google::protobuf::RepeatedPtrField<embark::logger::DataPiece> &data) {
     auto stream_index = indices_.find(stream);
     if (stream_index == indices_.end()) {
         indices_.emplace(stream, indices_.size());

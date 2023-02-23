@@ -23,7 +23,7 @@ std::shared_ptr<DataStreamsResponse> StorageScanner::getStreams(uint64_t start,
                 auto path = entry.path().filename().string();
                 auto day = std::stoul(path);
                 if (day >= start_day && day <= end_day) {
-                    extractStreams(entry.path(), start, end, result);
+                    extractStreams(entry.path(), start, end, day, result);
                 }
             } catch (...) {
             }
@@ -33,7 +33,7 @@ std::shared_ptr<DataStreamsResponse> StorageScanner::getStreams(uint64_t start,
 }
 
 void StorageScanner::extractStreams(
-    const std::filesystem::path& path, uint64_t start, uint64_t end,
+    const std::filesystem::path& path, uint64_t start, uint64_t end, uint32_t day,
     std::shared_ptr<DataStreamsResponse> result) {
     for (const auto& entry : std::filesystem::directory_iterator(path)) {
         if (!entry.is_directory() && entry.path().extension() == ".idx") {
@@ -41,6 +41,7 @@ void StorageScanner::extractStreams(
             StreamReader reader(entry);
             if (reader.matchTime(start, end)) {
                 auto stream = result->add_stream();
+                stream->set_day(day);
                 stream->set_name(reader.streamName());
                 stream->set_status(reader.status());
                 stream->set_file(entry.path());

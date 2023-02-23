@@ -1,5 +1,3 @@
-add_subdirectory(asc_writer)
-
 add_executable(logger_demo logger_demo.cpp)
 add_dependencies(logger_demo LogWriter LogReader)
 target_link_libraries(logger_demo LogWriter LogReader)
@@ -13,4 +11,11 @@ target_link_libraries(reader_demo LogClient)
 add_executable(logger logger.cpp)
 add_dependencies(logger LogWriter LogReader)
 target_link_libraries(logger LogWriter LogReader)
+
+add_subdirectory(asc_writer)
+include_directories(asc_writer)
+add_executable(get_can get_can.cpp)
+add_dependencies(get_can AscWriter)
+target_link_libraries(get_can LogClient AscWriter)
+
 

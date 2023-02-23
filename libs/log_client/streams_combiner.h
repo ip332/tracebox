@@ -3,7 +3,7 @@
 #include "logger.pb.h"
 
 // A callback to store a single data record into the output stream.
-using data_writer_t = std::function<void(const embark::logger::DataPiece & data)>;
+using data_writer_t = std::function<void(const std::vector<embark::logger::DataPiece> & data)>;
 
 // This container holds data pieces from different streams which belongs to the same second.
 class OneSecondData {
@@ -59,7 +59,8 @@ public:
         : first_second_(start_time / 1E9), last_second_(end_time / 1E9) {}
 
     // Adds a data stream to the storage
-    void addRecords(const std::string & stream, const std::vector<embark::logger::DataPiece> & data);
+    void addRecords(const std::string & stream,
+                    const google::protobuf::RepeatedPtrField<embark::logger::DataPiece> & data);
 
     // Returns mapping between the name and the index.
     const std::map<std::string, int> & streams() const { return indices_; }

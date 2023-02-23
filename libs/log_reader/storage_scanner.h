@@ -14,8 +14,9 @@ class StorageScanner {
     std::string folder_;
 
     // Extracts all files names from the given directory matching the time range
+    // Parameter `day` will be added to the result.
     void extractStreams(const std::filesystem::path& path, uint64_t start,
-                        uint64_t end,
+                        uint64_t end, uint32_t day,
                         std::shared_ptr<DataStreamsResponse> result);
 
    public:

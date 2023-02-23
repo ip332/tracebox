@@ -50,15 +50,17 @@ enum StreamStatus {
 message DataStream {
     // The stream name. Multiple files might share the same stream name.
     optional string name = 1;
+    // The day when the file was created in YYYYMMDD format
+    optional uint32 day = 2;
     // The absolute path of the index file.
-    optional string file = 2;
+    optional string file = 3;
     // Number of records available in the index file.
-    optional uint32 records_cnt = 3;
+    optional uint32 records_cnt = 4;
     // Indicates the health status of this stream.
-    optional StreamStatus status = 4;
+    optional StreamStatus status = 5;
     // First and last records timestamps
-    optional uint64 start_time_ns = 5;
-    optional uint64 end_time_ns = 6;
+    optional uint64 start_time_ns = 7;
+    optional uint64 end_time_ns = 8;
 };
 
 // Any data type will be returned using the following format:
