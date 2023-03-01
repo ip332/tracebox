@@ -5,7 +5,7 @@ project(data_logger)
 # We need C++17 in order to use std::string_view
 set(CMAKE_CXX_STANDARD 17)
 
-if (NOT DEFINED BITBAKE OR NOT DEFINED catkin_FOUND)
+if (NOT DEFINED BITBAKE AND NOT DEFINED catkin_FOUND)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 endif()
 
@@ -16,7 +16,7 @@ include(tools/define_lib.cmake)
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIR})
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/protos)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data_protos)
 
 # in case of a standalone build the commons folder is expected to be at the same level
 if (NOT DEFINED BITBAKE)
