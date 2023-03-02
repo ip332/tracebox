@@ -4,7 +4,7 @@
 #include "options.h"
 #include "unistd.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, const char *argv[]) {
     OptionsManager options;
 
     std::string folder;
@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     options.addOption("-logger_port", "Logger's listening port", &logger_port);
     options.addOption("-reader_port", "Reader's listening port", &reader_port);
 
-    if (folder.empty() || max_size_mb == -1) {
+    if (!options.processArgs(argc, argv) || folder.empty() || max_size_mb == -1) {
         std::cerr << "Usage: logger [options]" << std::endl;
         options.print();
         return 1;
