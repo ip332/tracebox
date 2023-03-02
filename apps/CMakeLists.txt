@@ -8,9 +8,9 @@ target_link_libraries(client_demo LogClient)
 add_executable(reader_demo reader_demo.cpp)
 target_link_libraries(reader_demo LogClient)
 
-add_executable(logger logger.cpp)
-add_dependencies(logger LogWriter LogReader)
-target_link_libraries(logger LogWriter LogReader)
+add_executable(data_logger logger.cpp)
+add_dependencies(data_logger LogWriter LogReader)
+target_link_libraries(data_logger LogWriter LogReader)
 
 add_subdirectory(asc_writer)
 include_directories(asc_writer)
