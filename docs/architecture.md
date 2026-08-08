@@ -54,6 +54,7 @@ flowchart LR
 | `DataLogger` | Write-service façade and request parser | Constructor starts service; private `handleLogRequest()` | Owns a `Server` and a `LogWriter`; non-copyable | Callback runs on `Server` thread; enqueue is synchronized |
 | `LogWriter` | Decouples network ingestion from storage writes | `add()` | Owns a queue, `Storage` reference, and one worker thread | `add()` may be called by server thread(s); storage runs on worker |
 | `Storage` | Enforces byte budget and selects the active day | `write()` | Owns the active `Folder` | Worker thread only in normal composition |
+| `StorageBackend` / `FilesystemStorageBackend` | Internal boundary between storage policy and filesystem persistence | `usedBytes()`, `removeOldest()`, `write()` | `Storage` owns the backend; filesystem backend owns `Folder` | Worker thread only |
 | `Folder` | Represents one day and maps channel names to writers | `write()`, `sameDay()`, `close()` | Owns `StreamWriter` objects in a map | Worker thread only |
 | `StreamWriter` | Appends one channel’s index/data files | `openFile()`, `write()` | Owns injectable `FileIO` handles | Worker thread only |
 | `FileIO` / `StandardFileIO` | File-system boundary used by `StreamWriter` | `open()`, `write()`, `flush()`, `close()` | `StreamWriter` owns handles through `unique_ptr`; tests may supply a derived mock | Caller’s thread |
@@ -177,6 +178,14 @@ for record ordering as written, for day-directory selection after conversion
 through `localtime()`, and for query filtering. The implementation does not
 validate monotonicity, clock source, timezone consistency across machines, or
 future/invalid values.
+
+Storage policy is separated from the current persistence medium through the
+internal `StorageBackend` interface. `Storage` owns the byte budget and asks
+the backend for used bytes, oldest-day deletion, and writes.
+`FilesystemStorageBackend` is the only implementation; it owns the root path,
+filesystem scans, day deletion, and the active `Folder`. The reader path remains
+directly coupled to the index/data files because its query and corruption
+semantics have not been generalized.
 
 ### Retention and rollover
 

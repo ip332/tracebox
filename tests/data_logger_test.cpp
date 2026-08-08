@@ -14,6 +14,7 @@
 #include "folder.h"
 #include "idx_file_reader.h"
 #include "storage.h"
+#include "storage_backend.h"
 #include "storage_scanner.h"
 #include "stream_reader.h"
 #include "stream_writer.h"
@@ -331,6 +332,18 @@ TEST(StorageTest, RejectsWritesWhenNoFolderCanBeRemoved) {
     constexpr uint64_t timestamp = 1704067200000000000ULL;
     Storage storage(dir.path().string(), 1);
     EXPECT_EQ(storage.write(request(timestamp, 1, "a")), 0);
+}
+
+TEST(StorageBackendTest, FilesystemBackendOwnsDayAndRecordPersistence) {
+    using namespace tracebox::logger;
+    TemporaryDirectory dir;
+    constexpr uint64_t timestamp = 1704067200000000000ULL;
+
+    FilesystemStorageBackend backend(dir.path().string());
+    EXPECT_EQ(backend.usedBytes(), 0U);
+    ASSERT_GT(backend.write(request(timestamp, 1, "a")), 0);
+    EXPECT_TRUE(std::filesystem::exists(dir.path() / timestampedDay(timestamp)));
+    EXPECT_GT(backend.usedBytes(), 0U);
 }
 
 TEST(DataFileReaderTest, ReadsValidDataAndReportsMalformedFiles) {
