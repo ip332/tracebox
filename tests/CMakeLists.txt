@@ -16,3 +16,12 @@ target_include_directories(data_logger_tests PRIVATE
 
 include(GoogleTest)
 gtest_discover_tests(data_logger_tests)
+
+if (DATA_LOGGER_BUILD_RUNTIME)
+    add_executable(tracebox_public_api_test public_api_test.cpp)
+    target_link_libraries(tracebox_public_api_test PRIVATE Tracebox GTest::gtest_main)
+    target_include_directories(tracebox_public_api_test PRIVATE
+                               ${CMAKE_SOURCE_DIR}/include)
+    include(GoogleTest)
+    gtest_discover_tests(tracebox_public_api_test)
+endif()

@@ -63,6 +63,7 @@ if (DATA_LOGGER_BUILD_RUNTIME)
             libs/log_writer/writer
             libs/log_client
             libs/log_reader
+            libs/tracebox_api
             )
 endif()
 
