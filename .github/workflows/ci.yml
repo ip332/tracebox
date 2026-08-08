@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  docker:
+    name: Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker compose build
+
+  gcc:
+    name: GCC
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker compose build
+
+      - name: Configure, build, and test with GCC
+        run: |
+          docker compose run --rm dev bash -lc '
+            set -e
+            export CC=gcc CXX=g++
+            cmake -S . -B build/gcc -G Ninja -DCMAKE_BUILD_TYPE=Debug
+            cmake --build build/gcc
+            ctest --test-dir build/gcc --output-on-failure
+            ctest --test-dir build/gcc -R PublicApiTest --output-on-failure
+            cmake -S . -B build/gcc-storage -G Ninja \
+              -DCMAKE_BUILD_TYPE=Debug -DDATA_LOGGER_BUILD_RUNTIME=OFF
+            cmake --build build/gcc-storage
+            ctest --test-dir build/gcc-storage --output-on-failure
+          '
+
+  clang:
+    name: Clang
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker compose build
+
+      - name: Configure, build, and test with Clang
+        run: |
+          docker compose run --rm dev bash -lc '
+            set -e
+            export CC=clang CXX=clang++
+            cmake -S . -B build/clang -G Ninja -DCMAKE_BUILD_TYPE=Debug
+            cmake --build build/clang
+            ctest --test-dir build/clang --output-on-failure
+            ctest --test-dir build/clang -R PublicApiTest --output-on-failure
+            cmake -S . -B build/clang-storage -G Ninja \
+              -DCMAKE_BUILD_TYPE=Debug -DDATA_LOGGER_BUILD_RUNTIME=OFF
+            cmake --build build/clang-storage
+            ctest --test-dir build/clang-storage --output-on-failure
+          '

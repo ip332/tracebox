@@ -1,5 +1,7 @@
 # Data Logging library
 
+[![CI](https://github.com/ip332/tracebox/actions/workflows/ci.yml/badge.svg)](https://github.com/ip332/tracebox/actions/workflows/ci.yml)
+
 This repository contains components to record fixed- and variable- size data pieces in the file system
 and to retrieve data recorded within a given time range.
 
@@ -23,6 +25,9 @@ docker compose run --rm dev
 
 The source tree is mounted at `/workspace`. The default container user uses
 UID/GID 1000; override `DEV_UID` and `DEV_GID` when needed.
+
+GitHub Actions validates Docker image creation plus GCC and Clang configure,
+build, runtime tests, storage-only tests, and the public API test.
 
 To generate a GCC coverage report inside the container:
 
