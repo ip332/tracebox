@@ -93,7 +93,7 @@ class IndexFileReader : public FileReader {
             log_error("File " + path_ + " was not opened");
             return 0;
         }
-        if (header_->record_size_ == 0 || !payload) {
+        if (header_->record_size_ == 0 || !payload || index >= records_cnt_) {
             log_error("Can't read fixed payload from a variable length file " +
                       path_);
             return 0;
@@ -104,11 +104,15 @@ class IndexFileReader : public FileReader {
         FixedRecordIdx record;
         if_.read(reinterpret_cast<char *>(&record), sizeof(record));
         if (!if_) {
+            log_error("Couldn't read fixed record " + std::to_string(index) +
+                      " from " + path_);
             return 0;
         }
         std::vector<char> buffer(header_->record_size_);
         if_.read(buffer.data(), header_->record_size_);
         if (!if_) {
+            log_error("Couldn't read fixed payload " + std::to_string(index) +
+                      " from " + path_);
             return 0;
         }
         payload->assign(buffer.data(), header_->record_size_);
@@ -117,11 +121,12 @@ class IndexFileReader : public FileReader {
 
     // Reads the offset (or 0 in case of an error)
     uint32_t readOffset(uint32_t index) {
+        last_error_.clear();
         if (!header_) {
             log_error("File " + path_ + " was not opened");
             return 0;
         }
-        if (header_->record_size_) {
+        if (header_->record_size_ || index >= records_cnt_) {
             log_error("Can't read offset from a fixed length file " + path_);
             return 0;
         }
@@ -131,6 +136,8 @@ class IndexFileReader : public FileReader {
         VariableRecordIdx record;
         if_.read(reinterpret_cast<char *>(&record), sizeof(record));
         if (!if_) {
+            log_error("Couldn't read variable index record " +
+                      std::to_string(index) + " from " + path_);
             return 0;
         }
         return record.offset_;

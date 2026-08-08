@@ -13,13 +13,13 @@ class DataFileReader : public FileReader {
     // size (or 0 in case of an error).
     uint32_t read(size_t offset, DataPiece *result) {
         last_error_.clear();
-        if (!header_) {
+        if (!header_ || !result) {
             log_error("File " + path_ + " was not opened");
             return 0;
         }
-        if (size_bytes_ == 0 ||
-            offset >= (size_bytes_ - sizeof(VariableRecordDataHeader) - 1) ||
+        if (size_bytes_ < header_->header_size_ ||
             offset < header_->header_size_ ||
+            offset > size_bytes_ - sizeof(VariableRecordDataHeader) ||
             header_->file_type_ != kDataFile) {
             log_error("Invalid offset " + std::to_string(offset) +
                       " for file " + path_ + " which has " +
@@ -37,6 +37,12 @@ class DataFileReader : public FileReader {
         if (!if_) {
             log_error("Couldn't read " + std::to_string(sizeof(rec_header)) +
                       " from " + path_ + " at " + std::to_string(offset));
+            return 0;
+        }
+        if (rec_header.size_ > size_bytes_ - offset -
+                                   sizeof(VariableRecordDataHeader)) {
+            log_error("Record at " + std::to_string(offset) + " in " + path_ +
+                      " extends beyond the end of the file");
             return 0;
         }
         std::vector<char> buffer(rec_header.size_);

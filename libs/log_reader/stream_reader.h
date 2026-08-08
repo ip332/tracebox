@@ -43,8 +43,11 @@ class StreamReader {
 
     // Returns the last error reported by the input stream.
     const std::string &last_error() const {
-        return index_->last_error().empty() ? data_->last_error()
-                                            : index_->last_error();
+        static const std::string no_error;
+        if (index_ && !index_->last_error().empty()) {
+            return index_->last_error();
+        }
+        return data_ ? data_->last_error() : no_error;
     }
 
     uint64_t start_ns() const { return index_->start_ns(); }

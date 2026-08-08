@@ -471,7 +471,9 @@ a platform abstraction.
    native byte order and ABI layout.
 6. **Weak corruption model.** File size and header checks are partial; offsets,
    record boundaries, duplicated timestamps, and trailing partial records are
-   not comprehensively validated.
+   not comprehensively validated. Malformed variable lengths/offsets and
+   truncated payloads now fail closed, but no checksums or startup recovery
+   exist.
 7. **Query cost.** Every stream discovery query scans directories and opens
    candidate index files; data retrieval walks records linearly.
 8. **Retention accounting.** The estimate is intentionally conservative and

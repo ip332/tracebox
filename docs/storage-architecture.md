@@ -233,7 +233,8 @@ methods until a concrete device contract exists.
   based.
 * Day deletion remains whole-directory and can be expensive.
 * The backend does not add journaling, checksums, fsync, orphan cleanup, or
-  corruption repair.
+  corruption repair. Durability and recovery semantics are documented in
+  `docs/durability-and-recovery.md`.
 * The reader still has direct filesystem coupling and linear query behavior.
 * The internal interface is not a stable ABI and may change with the storage
   implementation.

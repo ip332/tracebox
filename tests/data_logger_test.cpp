@@ -396,6 +396,30 @@ TEST(DataFileReaderTest, ReadsValidDataAndReportsMalformedFiles) {
     EXPECT_EQ(truncated_record_reader.read(sizeof(LogFileHeader), &piece), 0U);
 }
 
+TEST(DataFileReaderTest, RejectsARecordWhosePayloadExceedsTheFile) {
+    using namespace tracebox::logger;
+    TemporaryDirectory dir;
+    constexpr uint64_t timestamp = 1704067200000000000ULL;
+    const auto path = dir.path() / "short_payload.data";
+    {
+        std::ofstream output(path, std::ios::binary);
+        LogFileHeader header;
+        header.header_size_ = sizeof(header);
+        header.file_type_ = kDataFile;
+        output.write(reinterpret_cast<const char *>(&header), sizeof(header));
+        VariableRecordDataHeader record;
+        record.time_ns_ = timestamp;
+        record.size_ = 16;
+        output.write(reinterpret_cast<const char *>(&record), sizeof(record));
+        output.write("x", 1);
+    }
+
+    DataFileReader reader(path);
+    DataPiece piece;
+    EXPECT_EQ(reader.read(sizeof(LogFileHeader), &piece), 0U);
+    EXPECT_FALSE(reader.last_error().empty());
+}
+
 TEST(IndexFileReaderTest, ReportsInvalidReadsAndHandlesMalformedHeaders) {
     using namespace tracebox::logger;
     TemporaryDirectory dir;
@@ -473,6 +497,68 @@ TEST(StreamReaderTest, HandlesEmptyInvalidAndMismatchedStreams) {
     StreamReader missing_data(variable_index);
     EXPECT_EQ(missing_data.status(), StreamStatus::kHeadersDifferent);
     EXPECT_FALSE(missing_data.read(0, &piece));
+}
+
+TEST(StreamReaderTest, RejectsTruncatedVariableDataAndInvalidOffsets) {
+    using namespace tracebox::logger;
+    TemporaryDirectory dir;
+    constexpr uint64_t timestamp = 1704067200000000000ULL;
+    const auto variable_dir = dir.path() / "variable";
+    ASSERT_TRUE(std::filesystem::create_directories(variable_dir));
+    {
+        StreamWriter writer(variable_dir);
+        ASSERT_GT(writer.openFile(request(timestamp, 0, "payload")), 0);
+        ASSERT_GT(writer.write(timestamp, "payload"), 0);
+    }
+
+    const auto index_path = onlyIndexFile(variable_dir);
+    const auto data_path = onlyDataFile(variable_dir);
+    ASSERT_FALSE(index_path.empty());
+    ASSERT_FALSE(data_path.empty());
+
+    std::filesystem::resize_file(
+        data_path, sizeof(LogFileHeader) + sizeof(VariableRecordDataHeader) + 1);
+    StreamReader truncated(index_path);
+    DataPiece piece;
+    EXPECT_EQ(truncated.status(), StreamStatus::kHealthy);
+    EXPECT_FALSE(truncated.read(0, &piece));
+    EXPECT_FALSE(truncated.last_error().empty());
+
+    {
+        std::fstream index(index_path,
+                           std::ios::binary | std::ios::in | std::ios::out);
+        ASSERT_TRUE(index.is_open());
+        const auto offset_position = sizeof(LogFileHeader) + sizeof(uint64_t);
+        index.seekp(offset_position);
+        const uint32_t invalid_offset = UINT32_MAX;
+        index.write(reinterpret_cast<const char *>(&invalid_offset),
+                    sizeof(invalid_offset));
+    }
+    StreamReader invalid_offset(index_path);
+    EXPECT_EQ(invalid_offset.status(), StreamStatus::kHealthy);
+    EXPECT_FALSE(invalid_offset.read(0, &piece));
+    EXPECT_FALSE(invalid_offset.last_error().empty());
+}
+
+TEST(StreamReaderTest, TreatsAPartialFinalIndexRecordAsAnEmptyStream) {
+    using namespace tracebox::logger;
+    TemporaryDirectory dir;
+    constexpr uint64_t timestamp = 1704067200000000000ULL;
+    {
+        StreamWriter writer(dir.path());
+        ASSERT_GT(writer.openFile(request(timestamp, 3, "abc")), 0);
+        ASSERT_GT(writer.write(timestamp, "abc"), 0);
+    }
+
+    const auto index_path = onlyIndexFile(dir.path());
+    ASSERT_FALSE(index_path.empty());
+    const auto complete_size = std::filesystem::file_size(index_path);
+    ASSERT_GT(complete_size, sizeof(LogFileHeader) + sizeof(FixedRecordIdx));
+    std::filesystem::resize_file(index_path, complete_size - 1);
+
+    StreamReader reader(index_path);
+    EXPECT_EQ(reader.status(), StreamStatus::kEmpty);
+    EXPECT_FALSE(reader.read(0, nullptr));
 }
 
 TEST(StorageScannerTest, IgnoresInvalidDirectoriesAndRejectsInvalidQueries) {

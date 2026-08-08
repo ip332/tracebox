@@ -36,7 +36,7 @@ StreamReader::StreamReader(const std::filesystem::path &path)
 }
 
 bool StreamReader::read(size_t rec_index, DataPiece *payload) {
-    if (status_ != kHealthy) {
+    if (status_ != kHealthy || !payload) {
         return false;
     }
     auto time_ns = index_->timeOf(rec_index);
@@ -55,7 +55,10 @@ bool StreamReader::read(size_t rec_index, DataPiece *payload) {
         if (!offset) {
             return false;
         }
-        data_->read(offset, payload);
+        const auto size = data_->read(offset, payload);
+        if (!size && !data_->last_error().empty()) {
+            return false;
+        }
     }
     return true;
 }
