@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 bool Folder::create(uint64_t time_ns) {
@@ -40,4 +40,4 @@ int Folder::write(const LogRequest& request) {
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

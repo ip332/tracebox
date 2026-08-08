@@ -4,7 +4,7 @@
 
 #include "logger.pb.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 std::shared_ptr<DataStreamsResponse> LogReadClient::getStreams(
@@ -32,4 +32,4 @@ std::shared_ptr<DataStreamsResponse> LogReadClient::getData(
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

@@ -4,7 +4,7 @@
 #include "storage_scanner.h"
 #include "tcp_server.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class spins a TCP server and listens for DataStreamsRequest or
@@ -60,4 +60,4 @@ class LogReader {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

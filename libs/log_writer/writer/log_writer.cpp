@@ -1,6 +1,6 @@
 #include "log_writer.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 void LogWriter::writingThread() {
@@ -35,4 +35,4 @@ void LogWriter::add(const LogRequest& request) {
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

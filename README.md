@@ -3,6 +3,42 @@
 This repository contains components to record fixed- and variable- size data pieces in the file system
 and to retrieve data recorded within a given time range.
 
+## Reproducible development environment
+
+The repository includes a Linux Docker environment with the compiler, CMake,
+Protobuf, gflags, GoogleTest, and Ninja dependencies installed.
+
+```sh
+docker compose build
+docker compose run --rm dev bash -lc \
+  'cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug && \
+   cmake --build build && ctest --test-dir build --output-on-failure'
+```
+
+For an interactive shell:
+
+```sh
+docker compose run --rm dev
+```
+
+The source tree is mounted at `/workspace`. The default container user uses
+UID/GID 1000; override `DEV_UID` and `DEV_GID` when needed.
+
+To generate a GCC coverage report inside the container:
+
+```sh
+docker compose run --rm dev bash -lc \
+  'rm -rf coverage-build && \
+   cmake -S . -B coverage-build -G Ninja \
+     -DDATA_LOGGER_BUILD_RUNTIME=OFF \
+     -DCMAKE_CXX_FLAGS="--coverage" \
+     -DCMAKE_EXE_LINKER_FLAGS="--coverage" && \
+   cmake --build coverage-build && \
+   ctest --test-dir coverage-build --output-on-failure && \
+   gcovr --root . --filter "libs/(log_reader|log_writer|data_types\\.h)" \
+     --exclude "libs/data_protos" --exclude "tests" --txt'
+```
+
 ## Recording
 
 ```

@@ -6,7 +6,7 @@
 
 #include "tcp_socket.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class implements a generic TCP/IP client to send data to a tcp_server.
@@ -53,4 +53,4 @@ class TcpClient {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

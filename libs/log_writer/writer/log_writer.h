@@ -7,7 +7,7 @@
 #include "logger.pb.h"
 #include "storage.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class stores incoming logging requests into a queue and implements a
@@ -66,4 +66,4 @@ class LogWriter {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

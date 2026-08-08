@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -9,7 +10,7 @@
 using data_callback_t =
     std::function<std::string(const std::string_view& data)>;
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class implements a typical TCP/IP tcp_server which uses a single thread
@@ -55,4 +56,4 @@ class Server {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

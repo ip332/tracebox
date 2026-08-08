@@ -2,7 +2,7 @@
 
 #include "file_reader.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 class IndexFileReader : public FileReader {
@@ -29,7 +29,7 @@ class IndexFileReader : public FileReader {
    public:
     IndexFileReader(const std::filesystem::path &path)
         : FileReader(path), records_cnt_(0) {
-        if (size_bytes_) {
+        if (size_bytes_ && header_ && header_->header_size_ <= size_bytes_) {
             auto record_size =
                 header_->record_size_
                     ? sizeof(FixedRecordIdx) + header_->record_size_
@@ -50,8 +50,8 @@ class IndexFileReader : public FileReader {
 
     // Returns true if at least one record belongs to the given time range.
     bool matchTime(uint64_t start, uint64_t end) const {
-        return records_cnt_ && (start < end) && (start_ns_ <= end_ns_) &&
-               (start_ns_ >= start) && (end_ns_ <= end);
+        return records_cnt_ && (start <= end) && (start_ns_ <= end) &&
+               (end_ns_ >= start);
     }
 
     // Tells if this index file stores fixed size records.
@@ -138,4 +138,4 @@ class IndexFileReader : public FileReader {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

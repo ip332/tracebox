@@ -5,7 +5,7 @@
 
 #include "logger.pb.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class scans a given storage to find all streams for a given time range.
@@ -41,4 +41,4 @@ class StorageScanner {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

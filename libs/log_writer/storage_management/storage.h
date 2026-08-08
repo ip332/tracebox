@@ -2,7 +2,7 @@
 
 #include "folder.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class implements standard interface to the file system objects in the
@@ -47,4 +47,4 @@ class Storage {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

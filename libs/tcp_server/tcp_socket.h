@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This header implements a generic TCP functionality commons for client and
@@ -79,4 +79,4 @@ class TcpSocket {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

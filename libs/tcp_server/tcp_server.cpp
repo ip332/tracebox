@@ -10,7 +10,7 @@
 
 #include "tcp_socket.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 Server::Server(uint32_t port, data_callback_t cb) : callback_(cb) {
@@ -142,4 +142,4 @@ bool Server::handleLogRequest(int fd) {
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

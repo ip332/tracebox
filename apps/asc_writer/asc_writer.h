@@ -24,5 +24,5 @@ public:
             : out_(out), streams_(streams) { }
 
     // Writes the given data into the ASC stream.
-    void write(const std::vector<embark::logger::DataPiece> &data);
+    void write(const std::vector<tracebox::logger::DataPiece> &data);
 };

@@ -1,38 +1,36 @@
 #include "data_logger.h"
+#include <gflags/gflags.h>
+
 #include "log_reader.h"
 #include "storage.h"
-#include "options.h"
 #include "unistd.h"
 
-int main(int argc, const char *argv[]) {
-    OptionsManager options;
+DEFINE_string(folder, "", "Storage folder.");
+DEFINE_int32(max_size, -1, "Total files size limit in MiB.");
+DEFINE_int32(logger_port, 49999, "Logger's listening port.");
+DEFINE_int32(reader_port, 49998, "Reader's listening port.");
 
-    std::string folder;
-    int max_size_mb = -1;
-    int logger_port = 49999;
-    int reader_port = 49998;
+int main(int argc, char **argv) {
+    gflags::SetUsageMessage("logger --folder <path> --max_size <MiB> [options]");
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-    options.addOption("-folder", "Storage folder.", &folder);
-    options.addOption("-max_size", "Total files size limit in Mb.", &max_size_mb);
-    options.addOption("-logger_port", "Logger's listening port", &logger_port);
-    options.addOption("-reader_port", "Reader's listening port", &reader_port);
-
-    if (!options.processArgs(argc, argv) || folder.empty() || max_size_mb == -1) {
-        std::cerr << "Usage: logger [options]" << std::endl;
-        options.print();
+    if (FLAGS_folder.empty() || FLAGS_max_size < 0) {
+        std::cerr << "Error: --folder and --max_size are required.\n";
+        std::cerr << gflags::ProgramUsage();
         return 1;
     }
 
-    if (!std::filesystem::is_directory(folder)) {
-        std::cerr << "Folder '" << folder << "' doesn't exist" << std::endl;
+    if (!std::filesystem::is_directory(FLAGS_folder)) {
+        std::cerr << "Folder '" << FLAGS_folder << "' doesn't exist" << std::endl;
         return 2;
     }
 
-    using namespace embark::logger;
+    using namespace tracebox::logger;
 
-    auto storage = std::make_shared<Storage>(folder, max_size_mb * 1024 * 1024);
-    DataLogger logger(logger_port, storage);
-    LogReader reader(reader_port, folder);
+    auto storage = std::make_shared<Storage>(
+        FLAGS_folder, static_cast<int64_t>(FLAGS_max_size) * 1024 * 1024);
+    DataLogger logger(FLAGS_logger_port, storage);
+    LogReader reader(FLAGS_reader_port, FLAGS_folder);
 
     while (true) {
         sleep(1);

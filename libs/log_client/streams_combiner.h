@@ -3,14 +3,14 @@
 #include "logger.pb.h"
 
 // A callback to store a single data record into the output stream.
-using data_writer_t = std::function<void(const std::vector<embark::logger::DataPiece> & data)>;
+using data_writer_t = std::function<void(const std::vector<tracebox::logger::DataPiece> & data)>;
 
 // This container holds data pieces from different streams which belongs to the same second.
 class OneSecondData {
     // The second this container represents.
     uint64_t second_;
     // Actual data storage
-    std::vector<embark::logger::DataPiece> data_;
+    std::vector<tracebox::logger::DataPiece> data_;
     // Keep sorting status
     bool sorted_ = false;
 
@@ -18,7 +18,7 @@ public:
     explicit OneSecondData(uint64_t second) : second_(second) {}
 
     // Moves the given data into the vector
-    void add(const std::vector<embark::logger::DataPiece> &data) {
+    void add(const std::vector<tracebox::logger::DataPiece> &data) {
         sorted_ = false;
         data_.insert(data_.end(), data.begin(), data.end());
     }
@@ -30,7 +30,7 @@ public:
         }
         std::sort(data_.begin(),
                   data_.end(),
-                  [](const embark::logger::DataPiece& a, const embark::logger::DataPiece& b){
+                  [](const tracebox::logger::DataPiece& a, const tracebox::logger::DataPiece& b){
                       return a.time_ns() < b.time_ns();
                   });
         sorted_ = true;
@@ -51,7 +51,7 @@ class StreamsCombiner {
     std::map<std::string, int> indices_;
 
     // Find the appropriate second to add the accumulated records.
-    void storeData(uint64_t second, const std::vector<embark::logger::DataPiece> &data);
+    void storeData(uint64_t second, const std::vector<tracebox::logger::DataPiece> &data);
 
 public:
     // Request serv
@@ -60,7 +60,7 @@ public:
 
     // Adds a data stream to the storage
     void addRecords(const std::string & stream,
-                    const google::protobuf::RepeatedPtrField<embark::logger::DataPiece> & data);
+                    const google::protobuf::RepeatedPtrField<tracebox::logger::DataPiece> & data);
 
     // Returns mapping between the name and the index.
     const std::map<std::string, int> & streams() const { return indices_; }

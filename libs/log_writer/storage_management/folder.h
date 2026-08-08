@@ -6,7 +6,7 @@
 #include "logger.pb.h"
 #include "stream_writer.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class declares the interface to create, use and change a folder within
@@ -47,4 +47,4 @@ class Folder {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

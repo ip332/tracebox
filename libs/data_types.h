@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 constexpr static uint8_t kIndexFile = 1;
@@ -67,4 +67,4 @@ inline uint32_t Time2YYYYMMDD(uint64_t time_ns) {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

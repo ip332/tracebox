@@ -2,7 +2,7 @@
 
 #include "file_reader.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 class DataFileReader : public FileReader {
@@ -54,4 +54,4 @@ class DataFileReader : public FileReader {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

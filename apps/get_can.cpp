@@ -1,10 +1,17 @@
 #include <iostream>
 #include <fstream>
+#include <gflags/gflags.h>
 
 #include "reader_client.h"
-#include "options.h"
 #include "asc_writer.h"
 #include "streams_combiner.h"
+
+DEFINE_string(addr, "", "Logger IP address or hostname.");
+DEFINE_int32(port, 49998, "Logger's reader port.");
+DEFINE_int32(day, 0, "Day in YYYYMMDD format.");
+DEFINE_string(start, "", "Start time in HH:MM:SS format.");
+DEFINE_string(end, "", "End time in HH:MM:SS format.");
+DEFINE_string(out, "", "Output ASC file name.");
 
 // Converts day (YYYYMMDD) and time (HH:MM:SS) into the epoch time.
 uint64_t timeNs(int day, const std::string &time) {
@@ -18,43 +25,34 @@ uint64_t timeNs(int day, const std::string &time) {
 }
 
 int main(int argc, char *argv[]) {
-    using namespace embark::logger;
-    OptionsManager options;
+    using namespace tracebox::logger;
+    gflags::SetUsageMessage("get_can --addr <host> --day <YYYYMMDD> "
+                            "--start <HH:MM:SS> --end <HH:MM:SS> "
+                            "--out <file> [options]");
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-    int reader_port = 49998;
-    std::string logger;
-    int day = 0;
-    std::string start_time, end_time, output;
-
-    options.addOption("-addr", "Logger's IP or", &logger);
-    options.addOption("-port", "Logger's listening port", &reader_port);
-    options.addOption("-day", "Day in YYYYMMDD format", &day);
-    options.addOption("-start", "Start time in HH:MM:SS format", &start_time);
-    options.addOption("-end", "End time in HH:MM:SS format", &end_time);
-    options.addOption("-out", "Output file name", &output);
-
-    if (logger.empty() || day == 0 || start_time.empty() || end_time.empty() || output.empty()) {
+    if (FLAGS_addr.empty() || FLAGS_day == 0 || FLAGS_start.empty() ||
+        FLAGS_end.empty() || FLAGS_out.empty()) {
         std::cerr << "Error: Insufficient arguments." << std::endl;
-        std::cerr << "Usage: get_can -addr 10.2.5.5 -day 20230223 -start 082300 -end 123456 -out /tmp/file.asc [-port 12345]" << std::endl;
-        options.print();
+        std::cerr << gflags::ProgramUsage();
         return 1;
     }
 
     LogReadClient client;
 
-    if (!client.connect(logger, reader_port)) {
+    if (!client.connect(FLAGS_addr, FLAGS_port)) {
         std::cerr << "Error connecting to the logger" << std::endl;
         return 2;
     }
 
     // Determine time range
-    uint64_t start_ns = timeNs(day, start_time) * 1E9;
-    uint64_t end_ns = timeNs(day, end_time) * 1E9;
+    uint64_t start_ns = timeNs(FLAGS_day, FLAGS_start) * 1E9;
+    uint64_t end_ns = timeNs(FLAGS_day, FLAGS_end) * 1E9;
 
     // Open file for output
-    std::ofstream file(output);
+    std::ofstream file(FLAGS_out);
     if (!file.is_open()) {
-        std::cerr << "Couldn't open file " << output << std::endl;
+        std::cerr << "Couldn't open file " << FLAGS_out << std::endl;
         return 3;
     }
     // Get list of available streams and print it
@@ -77,10 +75,11 @@ int main(int argc, char *argv[]) {
         combiner.addRecords(it.name(), data->data());
     }
     AscWriter writer(file, combiner.streams());
-    auto count = combiner.save([&writer](const std::vector<embark::logger::DataPiece> & data){
+    auto count = combiner.save([&writer](const std::vector<tracebox::logger::DataPiece> & data){
         writer.write(data);
     });
-    std::cout << "File " << output << " with " << count << " records was created successfully." << std::endl;
+    std::cout << "File " << FLAGS_out << " with " << count
+              << " records was created successfully." << std::endl;
     file.close();
     return 0;
 }

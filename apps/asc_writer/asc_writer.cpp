@@ -51,7 +51,7 @@ bool::AscWriter::initStream(uint64_t time_ns) {
     return true;
 }
 
-void AscWriter::write(const std::vector<embark::logger::DataPiece> &data) {
+void AscWriter::write(const std::vector<tracebox::logger::DataPiece> &data) {
     if (data.empty()) {
         // TODO: error logging.
         return;

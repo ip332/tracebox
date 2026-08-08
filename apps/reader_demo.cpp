@@ -4,7 +4,7 @@
 
 // TODO: move the stream and size into the arguments list
 int main(int argc, char *argv[]) {
-    using namespace embark::logger;
+    using namespace tracebox::logger;
 
     LogReadClient client;
 

@@ -8,7 +8,7 @@
 #include "storage.h"
 #include "tcp_server.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class uses Server class to serialize multiple asynchronous logging
@@ -53,4 +53,4 @@ class DataLogger {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

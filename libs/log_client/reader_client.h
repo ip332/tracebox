@@ -7,7 +7,7 @@
 #include "logger.pb.h"
 #include "tcp_client.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class implements a client to send reading requests to the log reading
@@ -49,4 +49,4 @@ class LogReadClient : public TcpClient {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

@@ -1,0 +1,12 @@
+.git
+.gitignore
+.DS_Store
+.idea
+.vscode
+bin
+build
+cmake-build-*
+CMakeFiles
+data_logger.pdf
+*.profraw
+*.profdata

@@ -4,7 +4,7 @@
 #include "unistd.h"
 
 int main(int argc, char *argv[]) {
-    using namespace embark::logger;
+    using namespace tracebox::logger;
 
     if (argc != 3) {
         std::cerr << "Usage: logger_demo <folder> <max_size_bytes>"

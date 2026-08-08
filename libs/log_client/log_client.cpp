@@ -4,7 +4,7 @@
 
 #include "logger.pb.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 bool LogClient::logData(const std::string &data, uint64_t time_ns) {
@@ -29,4 +29,4 @@ bool LogClient::logData(const std::string &data, uint64_t time_ns) {
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

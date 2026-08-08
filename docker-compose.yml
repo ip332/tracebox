@@ -1,0 +1,15 @@
+services:
+  dev:
+    build:
+      context: .
+      args:
+        DEV_UID: "${DEV_UID:-1000}"
+        DEV_GID: "${DEV_GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    ports:
+      - "49998:49998"
+      - "49999:49999"
+    stdin_open: true
+    tty: true

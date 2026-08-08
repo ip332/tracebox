@@ -6,7 +6,7 @@
 #include "log_client.h"
 
 int main(int argc, char *argv[]) {
-    using namespace embark::logger;
+    using namespace tracebox::logger;
 
     if (argc < 2 || argc > 3) {
         std::cerr << "Usage: client_demo <StreamName> [record_size]"

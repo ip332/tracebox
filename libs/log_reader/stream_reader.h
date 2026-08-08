@@ -9,7 +9,7 @@
 #include "idx_file_reader.h"
 #include "logger.pb.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // A single read-only log stream representation
@@ -52,4 +52,4 @@ class StreamReader {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

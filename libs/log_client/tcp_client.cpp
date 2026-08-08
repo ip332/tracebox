@@ -7,7 +7,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 bool TcpClient::connect(const std::string &ip_addr, uint32_t port) {
@@ -45,4 +45,4 @@ bool TcpClient::connect(const std::string &ip_addr, uint32_t port) {
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

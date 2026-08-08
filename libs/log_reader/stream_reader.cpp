@@ -1,6 +1,6 @@
 #include "stream_reader.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 StreamReader::StreamReader(const std::filesystem::path &path)
@@ -61,4 +61,4 @@ bool StreamReader::read(size_t rec_index, DataPiece *payload) {
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

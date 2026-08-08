@@ -5,7 +5,7 @@
 #include "data_types.h"
 #include "stream_reader.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 std::shared_ptr<DataStreamsResponse> StorageScanner::getStreams(uint64_t start,
@@ -61,20 +61,24 @@ std::shared_ptr<DataStreamsResponse> StorageScanner::getData(
     if (!reader.matchTime(start_time, end_time)) {
         return result;
     }
-    if (max_size > (reader.records_cnt() - start_idx)) {
-        max_size = reader.records_cnt() - start_idx;
+    if (start_idx >= reader.records_cnt()) {
+        return result;
     }
-    for (size_t idx = start_idx; idx < max_size; idx++) {
+    uint32_t returned = 0;
+    for (size_t idx = start_idx; idx < reader.records_cnt() &&
+                                  returned < max_size; idx++) {
         DataPiece data;
         if (!reader.read(idx, &data)) {
             result->set_errors(reader.last_error());
-        } else {
+        } else if (data.time_ns() >= start_time &&
+                   data.time_ns() <= end_time) {
             auto data_piece = result->add_data();
             data_piece->CopyFrom(data);
+            ++returned;
         }
     }
     return result;
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

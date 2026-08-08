@@ -6,7 +6,7 @@
 
 #include "tcp_client.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // This class implements a client to send logging requests to the log_writer.
@@ -32,4 +32,4 @@ class LogClient : public TcpClient {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

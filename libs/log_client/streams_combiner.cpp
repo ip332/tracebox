@@ -5,7 +5,7 @@ size_t OneSecondData::save(data_writer_t writer) const {
     return data_.size();
 }
 
-void StreamsCombiner::storeData(uint64_t second, const std::vector<embark::logger::DataPiece> &data) {
+void StreamsCombiner::storeData(uint64_t second, const std::vector<tracebox::logger::DataPiece> &data) {
     if (second == 0 || data.empty()) {
         return;
     }
@@ -18,13 +18,13 @@ void StreamsCombiner::storeData(uint64_t second, const std::vector<embark::logge
 }
 
 void StreamsCombiner::addRecords(const std::string &stream,
-                                 const google::protobuf::RepeatedPtrField<embark::logger::DataPiece> &data) {
+                                 const google::protobuf::RepeatedPtrField<tracebox::logger::DataPiece> &data) {
     auto stream_index = indices_.find(stream);
     if (stream_index == indices_.end()) {
         indices_.emplace(stream, indices_.size());
         stream_index = indices_.find(stream);
     }
-    std::vector<embark::logger::DataPiece> tmp;
+    std::vector<tracebox::logger::DataPiece> tmp;
     uint64_t last = 0;
     for (const auto & it : data) {
         uint64_t second = it.time_ns() / 1E9;
@@ -40,7 +40,7 @@ void StreamsCombiner::addRecords(const std::string &stream,
             tmp.clear();
             last = second;
         }
-        embark::logger::DataPiece piece;
+        tracebox::logger::DataPiece piece;
         piece.set_time_ns(it.time_ns());
         piece.set_data(it.data().data(), it.data().size());
         piece.set_stream_idx(stream_index->second);

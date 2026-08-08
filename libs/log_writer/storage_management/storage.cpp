@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 size_t Storage::findUsedBytes() {
@@ -74,8 +74,12 @@ int Storage::write(const LogRequest& request) {
     if (!folder_->sameDay(request.time_ns())) {
         folder_ = std::make_unique<Folder>(folder_path_);
     }
-    return folder_->write(request);
+    const int written = folder_->write(request);
+    if (written > 0) {
+        available_bytes_ -= static_cast<size_t>(written);
+    }
+    return written;
 }
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

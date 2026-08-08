@@ -7,7 +7,7 @@
 #include "data_types.h"
 #include "logger.pb.h"
 
-namespace embark {
+namespace tracebox {
 namespace logger {
 
 // A single read-only file representation
@@ -79,4 +79,4 @@ class FileReader {
 };
 
 }  // namespace logger
-}  // namespace embark
+}  // namespace tracebox

@@ -6,7 +6,7 @@ syntax = "proto3";
 //  3. If you need to change a field type, then mark the old one deprecated and
 //     create a new one with a different type and field number.
 
-package embark.logger;
+package tracebox.logger;
 
 // Log request from a client to the logger at run-time.
 message LogRequest {
