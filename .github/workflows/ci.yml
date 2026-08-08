@@ -33,14 +33,14 @@ jobs:
           docker compose run --rm dev bash -lc '
             set -e
             export CC=gcc CXX=g++
-            cmake -S . -B build/gcc -G Ninja -DCMAKE_BUILD_TYPE=Debug
-            cmake --build build/gcc
-            ctest --test-dir build/gcc --output-on-failure
-            ctest --test-dir build/gcc -R PublicApiTest --output-on-failure
-            cmake -S . -B build/gcc-storage -G Ninja \
+            cmake -S . -B /tmp/tracebox-build/gcc -G Ninja -DCMAKE_BUILD_TYPE=Debug
+            cmake --build /tmp/tracebox-build/gcc
+            ctest --test-dir /tmp/tracebox-build/gcc --output-on-failure
+            ctest --test-dir /tmp/tracebox-build/gcc -R PublicApiTest --output-on-failure
+            cmake -S . -B /tmp/tracebox-build/gcc-storage -G Ninja \
               -DCMAKE_BUILD_TYPE=Debug -DDATA_LOGGER_BUILD_RUNTIME=OFF
-            cmake --build build/gcc-storage
-            ctest --test-dir build/gcc-storage --output-on-failure
+            cmake --build /tmp/tracebox-build/gcc-storage
+            ctest --test-dir /tmp/tracebox-build/gcc-storage --output-on-failure
           '
 
   clang:
@@ -58,12 +58,12 @@ jobs:
           docker compose run --rm dev bash -lc '
             set -e
             export CC=clang CXX=clang++
-            cmake -S . -B build/clang -G Ninja -DCMAKE_BUILD_TYPE=Debug
-            cmake --build build/clang
-            ctest --test-dir build/clang --output-on-failure
-            ctest --test-dir build/clang -R PublicApiTest --output-on-failure
-            cmake -S . -B build/clang-storage -G Ninja \
+            cmake -S . -B /tmp/tracebox-build/clang -G Ninja -DCMAKE_BUILD_TYPE=Debug
+            cmake --build /tmp/tracebox-build/clang
+            ctest --test-dir /tmp/tracebox-build/clang --output-on-failure
+            ctest --test-dir /tmp/tracebox-build/clang -R PublicApiTest --output-on-failure
+            cmake -S . -B /tmp/tracebox-build/clang-storage -G Ninja \
               -DCMAKE_BUILD_TYPE=Debug -DDATA_LOGGER_BUILD_RUNTIME=OFF
-            cmake --build build/clang-storage
-            ctest --test-dir build/clang-storage --output-on-failure
+            cmake --build /tmp/tracebox-build/clang-storage
+            ctest --test-dir /tmp/tracebox-build/clang-storage --output-on-failure
           '

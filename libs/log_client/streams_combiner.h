@@ -7,15 +7,13 @@ using data_writer_t = std::function<void(const std::vector<tracebox::logger::Dat
 
 // This container holds data pieces from different streams which belongs to the same second.
 class OneSecondData {
-    // The second this container represents.
-    uint64_t second_;
     // Actual data storage
     std::vector<tracebox::logger::DataPiece> data_;
     // Keep sorting status
     bool sorted_ = false;
 
 public:
-    explicit OneSecondData(uint64_t second) : second_(second) {}
+    OneSecondData() = default;
 
     // Moves the given data into the vector
     void add(const std::vector<tracebox::logger::DataPiece> &data) {
