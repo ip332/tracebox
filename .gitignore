@@ -1,0 +1,43 @@
+# Build systems and generated outputs
+/build/
+/bin/
+/cmake-build-*/
+/coverage-build/
+/CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+*.ninja
+*.ninja_deps
+*.ninja_log
+*.gcda
+*.gcno
+*.gcov
+*.o
+*.a
+*.so
+*.dylib
+*.pb.cc
+*.pb.h
+
+# IDEs and editor state
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# macOS metadata
+.DS_Store
+._*
+
+# Coverage, archives, logs, and local environment
+.coverage
+coverage.xml
+*.tgz
+*.log
+.env
+.env.*
+!.env.example

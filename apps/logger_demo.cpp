@@ -1,4 +1,4 @@
-#include "data_logger.h"
+#include "tracebox_logger.h"
 #include "log_reader.h"
 #include "storage.h"
 #include "unistd.h"
@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     std::string folder(argv[1]);
     auto storage = std::make_shared<Storage>(folder, max_size);
 
-    DataLogger logger(49999, storage);
+    TraceboxLogger logger(49999, storage);
     LogReader reader(49998, folder);
 
     while (true) {

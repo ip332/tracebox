@@ -9,7 +9,7 @@ schema, CMake targets, sample applications, and tests.
 
 The two runtime services are intentionally separate:
 
-* `DataLogger` accepts `LogRequest` messages and hands them to an asynchronous
+* `TraceboxLogger` accepts `LogRequest` messages and hands them to an asynchronous
   writer.
 * `LogReader` accepts `DataStreamsRequest` messages and reads the storage tree
   synchronously while servicing a client connection.
@@ -22,7 +22,7 @@ The libraries can also be used independently of the sample applications.
 flowchart LR
     Producer[Producer application]
     LogClient[LogClient\nprotobuf + TCP framing]
-    WriteServer[DataLogger\nServer / epoll thread]
+    WriteServer[TraceboxLogger\nServer / epoll thread]
     Queue[LogWriter\nunbounded queue]
     WriterThread[LogWriter worker thread]
     Storage[Storage\nretention and day selection]
@@ -51,7 +51,7 @@ flowchart LR
 | `TcpClient` | Connects to a server and exposes framed send/receive | `connect()`, `disconnect()`, `sendData()`, `readData()` | Owns one client socket; non-copyable | Caller’s thread |
 | `LogClient` | Builds and sends logging protobufs | `logData()` | Inherits socket ownership from `TcpClient` | Caller’s thread |
 | `LogReadClient` | Builds read requests and parses responses | `getStreams()`, `getData()` | Inherits socket ownership from `TcpClient` | Caller’s thread |
-| `DataLogger` | Write-service façade and request parser | Constructor starts service; private `handleLogRequest()` | Owns a `Server` and a `LogWriter`; non-copyable | Callback runs on `Server` thread; enqueue is synchronized |
+| `TraceboxLogger` | Write-service façade and request parser | Constructor starts service; private `handleLogRequest()` | Owns a `Server` and a `LogWriter`; non-copyable | Callback runs on `Server` thread; enqueue is synchronized |
 | `LogWriter` | Decouples network ingestion from storage writes | `add()` | Owns a queue, `Storage` reference, and one worker thread | `add()` may be called by server thread(s); storage runs on worker |
 | `Storage` | Enforces byte budget and selects the active day | `write()` | Owns the active `Folder` | Worker thread only in normal composition |
 | `StorageBackend` / `FilesystemStorageBackend` | Internal boundary between storage policy and filesystem persistence | `usedBytes()`, `removeOldest()`, `write()` | `Storage` owns the backend; filesystem backend owns `Folder` | Worker thread only |
@@ -74,7 +74,7 @@ the services; the client samples also use retry/input loops.
 sequenceDiagram
     participant P as Producer
     participant C as LogClient
-    participant S as DataLogger/Server
+    participant S as TraceboxLogger/Server
     participant Q as LogWriter queue
     participant W as Writer thread
     participant ST as Storage/Folder
@@ -274,7 +274,7 @@ addition to per-record temporary buffers.
 
 ### Synchronization and buffering
 
-`DataLogger::Server` invokes its callback on the server’s epoll thread. The
+`TraceboxLogger::Server` invokes its callback on the server’s epoll thread. The
 callback parses the protobuf and calls `LogWriter::add()`. `add()` takes a
 mutex, copies the request into an unbounded `std::queue`, releases the mutex,
 and notifies the worker condition variable.

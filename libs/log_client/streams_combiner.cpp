@@ -11,7 +11,7 @@ void StreamsCombiner::storeData(uint64_t second, const std::vector<tracebox::log
     }
     auto it = seconds_.find(second);
     if (it == seconds_.end()) {
-        seconds_.emplace(second, OneSecondData(second));
+        seconds_.emplace(second, OneSecondData{});
         it = seconds_.find(second);
     }
     it->second.add(data);

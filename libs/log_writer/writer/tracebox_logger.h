@@ -14,7 +14,7 @@ namespace logger {
 // This class uses Server class to serialize multiple asynchronous logging
 // requests and add them into a queue of LogRequests objects which will be
 // written to the file system using Storage class.
-class DataLogger {
+class TraceboxLogger {
     // Handles incoming request into a LogRequest object.
     Server server_;
     // Handles queuing incoming requests and writing them to the file system.
@@ -39,17 +39,17 @@ class DataLogger {
     }
 
    public:
-    explicit DataLogger(uint32_t port, std::shared_ptr<Storage> storage)
-        : server_(port, std::bind(&DataLogger::handleLogRequest, this,
+    explicit TraceboxLogger(uint32_t port, std::shared_ptr<Storage> storage)
+        : server_(port, std::bind(&TraceboxLogger::handleLogRequest, this,
                                   std::placeholders::_1)),
           writer_(storage),
           ready_(true) {}
 
     // Delete copy / assignment constructors
-    DataLogger(const DataLogger&) = delete;
-    DataLogger& operator=(const DataLogger&) = delete;
-    DataLogger(DataLogger&&) = delete;
-    DataLogger& operator=(DataLogger&&) = delete;
+    TraceboxLogger(const TraceboxLogger&) = delete;
+    TraceboxLogger& operator=(const TraceboxLogger&) = delete;
+    TraceboxLogger(TraceboxLogger&&) = delete;
+    TraceboxLogger& operator=(TraceboxLogger&&) = delete;
 };
 
 }  // namespace logger
