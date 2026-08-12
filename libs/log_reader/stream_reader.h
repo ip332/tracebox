@@ -22,7 +22,7 @@ class StreamReader {
     StreamStatus status_;
 
    public:
-    // The only argument is the absolute path to the .idx file
+    // The only argument is a server-confined path to the .idx file.
     StreamReader(const std::filesystem::path &path);
 
     // Returns true if at least one record belongs to the given time range.

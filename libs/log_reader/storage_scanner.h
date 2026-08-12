@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <string>
 
 #include "logger.pb.h"
@@ -11,7 +12,15 @@ namespace logger {
 // This class scans a given storage to find all streams for a given time range.
 class StorageScanner {
     // Storage folder
-    std::string folder_;
+    std::filesystem::path folder_;
+
+    // Resolves a client-supplied stream identifier to a confined, valid index
+    // file. The returned path is canonical and is never exposed to clients.
+    std::optional<std::filesystem::path> resolveIndexPath(
+        const std::string& file) const;
+
+    // Returns the storage-root-relative identifier used by discovery.
+    std::string streamIdentifier(const std::filesystem::path& path) const;
 
     // Extracts all files names from the given directory matching the time range
     // Parameter `day` will be added to the result.
@@ -20,7 +29,8 @@ class StorageScanner {
                         std::shared_ptr<DataStreamsResponse> result);
 
    public:
-    explicit StorageScanner(std::string folder) : folder_(folder) {}
+    explicit StorageScanner(std::string folder)
+        : folder_(std::filesystem::weakly_canonical(folder)) {}
 
     // Delete copy / assignment constructors
     StorageScanner(const StorageScanner&) = delete;

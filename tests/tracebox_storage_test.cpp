@@ -276,7 +276,8 @@ TEST(StorageScannerTest, PaginationAndOverlappingTimeRangeAreCorrect) {
     ASSERT_EQ(streams->stream_size(), 1);
     EXPECT_EQ(streams->stream(0).records_cnt(), 3U);
 
-    auto data = scanner.getData(index_path.string(), first, first + 2, 1, 2);
+    EXPECT_FALSE(std::filesystem::path(streams->stream(0).file()).is_absolute());
+    auto data = scanner.getData(streams->stream(0).file(), first, first + 2, 1, 2);
     ASSERT_EQ(data->errors(), "");
     ASSERT_EQ(data->data_size(), 2);
     EXPECT_EQ(data->data(0).time_ns(), first + 1);
@@ -569,7 +570,80 @@ TEST(StorageScannerTest, IgnoresInvalidDirectoriesAndRejectsInvalidQueries) {
     StorageScanner scanner(dir.path().string());
     auto streams = scanner.getStreams(2, 1);
     EXPECT_EQ(streams->stream_size(), 0);
-    auto missing = scanner.getData((dir.path() / "missing.idx").string(), 0, 1,
-                                   0, 1);
+    auto missing = scanner.getData("missing.idx", 0, 1, 0, 1);
     EXPECT_EQ(missing->data_size(), 0);
+    EXPECT_EQ(missing->errors(), "invalid reader path");
+}
+
+TEST(StorageScannerTest, ConfinesReaderPathsToDiscoveredIndexFiles) {
+    using namespace tracebox::logger;
+    TemporaryDirectory root;
+    TemporaryDirectory outside;
+    constexpr uint64_t timestamp = 1704067200000000000ULL;
+    const auto day = root.path() / timestampedDay(timestamp);
+    ASSERT_TRUE(std::filesystem::create_directories(day));
+
+    {
+        StreamWriter writer(day);
+        ASSERT_GT(writer.openFile(request(timestamp, 3, "abc")), 0);
+        ASSERT_GT(writer.write(timestamp, "abc"), 0);
+    }
+    const auto index = onlyIndexFile(day);
+    ASSERT_FALSE(index.empty());
+    const auto data = day / (index.stem().string() + ".data");
+    std::ofstream(data).put('x');
+    ASSERT_TRUE(std::filesystem::is_regular_file(data));
+
+    const auto outside_index = outside.path() / "outside.idx";
+    writeHeaderOnly(outside_index, kIndexFile, 3);
+    const auto outside_parent = outside.path() / "parent";
+    ASSERT_TRUE(std::filesystem::create_directories(outside_parent));
+    const auto parent_index = outside_parent / "parent.idx";
+    writeHeaderOnly(parent_index, kIndexFile, 3);
+    const auto prefix_sibling = root.path().string() + "_sibling";
+    ASSERT_TRUE(std::filesystem::create_directories(prefix_sibling));
+    writeHeaderOnly(std::filesystem::path(prefix_sibling) / "sibling.idx",
+                    kIndexFile, 3);
+
+    std::filesystem::create_symlink(outside_index, root.path() / "link.idx");
+    std::filesystem::create_symlink(outside_parent,
+                                    root.path() / "linked-parent");
+
+    StorageScanner scanner(root.path().string());
+    const auto streams = scanner.getStreams(timestamp, timestamp);
+    ASSERT_EQ(streams->stream_size(), 1);
+    const std::string legitimate = streams->stream(0).file();
+    EXPECT_EQ(scanner.getData(legitimate, timestamp, timestamp, 0, 1)
+                  ->errors(),
+              "");
+
+    const std::vector<std::string> rejected = {
+        outside_index.string(),
+        "../outside.idx",
+        timestampedDay(timestamp).string() + "/../" +
+            std::filesystem::path(legitimate).filename().string(),
+        "missing.idx",
+        timestampedDay(timestamp),
+        "not-an-index.txt",
+        std::filesystem::path(legitimate).replace_extension(".data").string(),
+        "link.idx",
+        "linked-parent/parent.idx",
+        (std::filesystem::path(prefix_sibling) / "sibling.idx").string(),
+        "",
+        "bad\\path.idx",
+    };
+
+    std::ofstream(root.path() / "not-an-index.txt").close();
+    for (const auto& path : rejected) {
+        const auto response = scanner.getData(path, timestamp, timestamp, 0, 1);
+        EXPECT_EQ(response->errors(), "invalid reader path") << path;
+        EXPECT_EQ(response->data_size(), 0) << path;
+    }
+
+    const std::string embedded_nul("bad\0.idx", 8);
+    const auto malformed = scanner.getData(embedded_nul, timestamp, timestamp,
+                                           0, 1);
+    EXPECT_EQ(malformed->errors(), "invalid reader path");
+    EXPECT_EQ(malformed->data_size(), 0);
+    std::filesystem::remove_all(prefix_sibling);
 }

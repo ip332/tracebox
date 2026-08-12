@@ -48,6 +48,13 @@ class IndexFileReader : public FileReader {
     // Returns the number of records
     size_t records_cnt() const { return records_cnt_; }
 
+    // A valid Tracebox index has a readable header identifying the index file.
+    bool validIndex() const {
+        return header_ && size_bytes_ >= header_->header_size_ &&
+               header_->header_size_ >= sizeof(LogFileHeader) &&
+               header_->file_type_ == kIndexFile;
+    }
+
     // Returns true if at least one record belongs to the given time range.
     bool matchTime(uint64_t start, uint64_t end) const {
         return records_cnt_ && (start <= end) && (start_ns_ <= end) &&
