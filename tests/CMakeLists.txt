@@ -24,4 +24,14 @@ if (TRACEBOX_BUILD_RUNTIME)
                                ${CMAKE_SOURCE_DIR}/include)
     include(GoogleTest)
     gtest_discover_tests(tracebox_public_api_test)
+
+    add_executable(tracebox_lifecycle_tests lifecycle_test.cpp
+                   ${CMAKE_SOURCE_DIR}/libs/log_reader/storage_scanner.cpp
+                   ${CMAKE_SOURCE_DIR}/libs/log_reader/stream_reader.cpp)
+    target_link_libraries(tracebox_lifecycle_tests PRIVATE LogWriter LogReader
+                          StorageManagement TcpServer data_protos
+                          ${TRACEBOX_TEST_PROTOBUF_LIBS} GTest::gtest_main)
+    target_include_directories(tracebox_lifecycle_tests PRIVATE
+                               ${CMAKE_SOURCE_DIR}/libs/log_reader)
+    gtest_discover_tests(tracebox_lifecycle_tests)
 endif()

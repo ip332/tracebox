@@ -1,19 +1,21 @@
 # Tracebox future improvements
 
 This document separates technically justified follow-up work from the current
-architecture review. None of the items below are implemented by this PR.
+architecture review. Items marked implemented are no longer pending; the
+remaining items are intentionally outside the focused lifecycle change.
 
 ## Short-term improvements
 
 These items can be addressed without changing the storage or network format if
 the behavior is specified first.
 
-### Make shutdown ownership explicit
+### Make shutdown ownership explicit (implemented)
 
-Replace detached service-thread lifetime with an owned thread that is stopped
-and joined by `Server` destruction. Make `running_` and wakeup state atomic or
-protect them with the existing synchronization scheme. This is justified by
-the current use-after-destruction and data-race risks during service shutdown.
+`Server` now owns a joinable thread, synchronized lifecycle state, and an
+eventfd wakeup. Destruction stops and joins before callback targets are
+destroyed; active clients are closed by the service thread. `LogWriter` stops
+admission, drains accepted requests, and joins its worker. Bounded storage
+cancellation and transport resource limits remain separate follow-up work.
 
 ### Bound ingress and response memory
 
