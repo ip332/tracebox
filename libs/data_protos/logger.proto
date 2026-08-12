@@ -52,7 +52,7 @@ message DataStream {
     optional string name = 1;
     // The day when the file was created in YYYYMMDD format
     optional uint32 day = 2;
-    // The absolute path of the index file.
+    // Storage-root-relative index identifier returned by stream discovery.
     optional string file = 3;
     // Number of records available in the index file.
     optional uint32 records_cnt = 4;

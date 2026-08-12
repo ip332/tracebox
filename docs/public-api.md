@@ -61,6 +61,13 @@ errors may leave the vector empty, and storage/read errors are reported in its
 `error` string when the current implementation provides one. The object is
 move-only and disconnects on destruction.
 
+The `Stream::file` value is an opaque, storage-root-relative index identifier
+returned by stream discovery. The reader service accepts only identifiers
+returned from that discovery namespace: absolute paths, traversal, symlink
+escapes, directories, non-index files, and `.data` files are rejected with the
+deterministic `invalid reader path` error. The TCP service remains
+unauthenticated and should be deployed only on a trusted network.
+
 `StreamStatus` preserves the current protobuf status values without requiring a
 protobuf include in user code. The numeric values are intentionally aligned
 with the current protocol enum; changing them would require a compatibility

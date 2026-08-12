@@ -339,9 +339,14 @@ protobuf C++ and Python files are build outputs; the repository stores the
 `.proto` source.
 
 Compatibility is constrained by more than protobuf: the native-endian length
-prefix, native packed storage records, local-time day naming, and absolute file
-paths in `DataStream.file` all assume compatible peers or a shared deployment
-environment. The wire schema uses `proto3` optional fields, but the current
+prefix, native packed storage records, local-time day naming, and
+storage-root-relative index identifiers in `DataStream.file` all assume
+compatible peers or a shared deployment environment. The reader resolves those
+identifiers through canonical filesystem paths and accepts only regular,
+valid `.idx` files beneath its configured storage root; absolute paths,
+traversal, symlink escapes, directories, unrelated files, and `.data` files
+are rejected as `invalid reader path`. The TCP service remains unauthenticated
+and requires a trusted deployment network. The wire schema uses `proto3` optional fields, but the current
 server selects a zero maximum count when a read request omits `max_count`; the
 provided client normally supplies `UINT32_MAX` explicitly.
 
