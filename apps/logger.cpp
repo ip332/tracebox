@@ -1,4 +1,4 @@
-#include "data_logger.h"
+#include "tracebox_logger.h"
 #include <gflags/gflags.h>
 
 #include "log_reader.h"
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
     auto storage = std::make_shared<Storage>(
         FLAGS_folder, static_cast<int64_t>(FLAGS_max_size) * 1024 * 1024);
-    DataLogger logger(FLAGS_logger_port, storage);
+    TraceboxLogger logger(FLAGS_logger_port, storage);
     LogReader reader(FLAGS_reader_port, FLAGS_folder);
 
     while (true) {

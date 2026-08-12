@@ -1,25 +1,35 @@
 # Tracebox roadmap
 
-This roadmap reflects the architecture review. It describes future work only;
-the current implementation and wire/storage formats remain unchanged.
+This roadmap reflects the architecture review. It distinguishes completed,
+partial, and planned work; the current public API and wire/storage formats
+remain unchanged.
 
-## Phase 1 — Core platform
+## Completed
 
-* Core recorder
-* Storage
-* Reader
-* Writer
-* Docker
-* CI
+* Tracebox public API
+* Core recorder, reader, writer, and storage implementations
+* Storage backend isolation
+* Docker development image
+* GCC/Clang CI validation
+* Architecture, public API, storage, and durability documentation
 
-## Phase 2 — Reliability and hardware integration
+## Partial / in progress
 
-* Storage abstraction
+* Crash recovery: durability and recovery semantics are documented, and
+  corruption/recovery tests cover current behavior; startup recovery is not yet
+  implemented.
+* Storage abstraction: the internal backend boundary exists, but additional
+  backends and hardware-specific optimization are not implemented.
+* Reliability hardening: validation and fault-injection coverage exists, while
+  lifecycle, bounds, and observability work remains.
+
+## Planned: reliability and hardware integration
+
 * Transport abstraction
-* Crash recovery
 * Flash optimization
+* Full crash recovery and durable metadata recovery
 
-## Phase 3 — Advanced data services
+## Planned: advanced data services
 
 * Compression
 * Encryption
@@ -28,7 +38,7 @@ the current implementation and wire/storage formats remain unchanged.
 * Replication
 * Streaming
 
-## Phase 4 — Ecosystem integrations
+## Planned: ecosystem integrations
 
 * Multiple storage backends
 * Web UI
@@ -36,8 +46,6 @@ the current implementation and wire/storage formats remain unchanged.
 * Cloud synchronization
 
 ## Cross-phase engineering priorities
-
-These concerns should be addressed at the phase where they become necessary:
 
 * Make service shutdown owned and joinable; remove detached-thread lifetime and
   shutdown data races.
@@ -51,11 +59,7 @@ These concerns should be addressed at the phase where they become necessary:
 
 ## Decision gates
 
-Before starting medium- or long-term work, resolve:
-
-* required durability level;
-* maximum record, queue, response, and client counts;
-* portability requirements beyond Linux/POSIX;
-* timestamp ordering and timezone policy;
-* storage compatibility requirements;
-* whether the network protocol is private or externally supported.
+Before starting medium- or long-term work, resolve required durability,
+resource limits, portability beyond Linux/POSIX, timestamp policy, storage
+compatibility, and whether the network protocol is private or externally
+supported.

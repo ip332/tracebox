@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(data_logger)
+project(Tracebox)
 
-option(DATA_LOGGER_BUILD_RUNTIME "Build network services and demo apps" ON)
+option(TRACEBOX_BUILD_RUNTIME "Build network services and demo apps" ON)
 
 # We need C++17 in order to use std::string_view
 set(CMAKE_CXX_STANDARD 17)
 
-if (NOT DEFINED BITBAKE AND NOT DEFINED catkin_FOUND)
+if (NOT DEFINED BITBAKE AND NOT DEFINED catkin_FOUND AND
+    NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 endif()
 
@@ -50,12 +51,12 @@ list(APPEND TARGETS
         libs/log_writer/storage_management
         )
 
-if (DATA_LOGGER_BUILD_RUNTIME)
+if (TRACEBOX_BUILD_RUNTIME)
     find_package(gflags REQUIRED)
     if (TARGET gflags::gflags)
-        set(DATA_LOGGER_GFLAGS_TARGET gflags::gflags)
+        set(TRACEBOX_GFLAGS_TARGET gflags::gflags)
     else()
-        set(DATA_LOGGER_GFLAGS_TARGET gflags)
+        set(TRACEBOX_GFLAGS_TARGET gflags)
     endif()
 
     list(APPEND TARGETS
@@ -75,7 +76,7 @@ foreach(target ${TARGETS})
     add_subdirectory(${target})
 endforeach()
 
-if (DATA_LOGGER_BUILD_RUNTIME)
+if (TRACEBOX_BUILD_RUNTIME)
     add_subdirectory(apps)
 endif()
 

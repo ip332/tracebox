@@ -188,7 +188,7 @@ the current return conventions.
 The following remain implementation details and should not be included by
 embedding applications:
 
-* `tracebox::logger::DataLogger`, `LogReader`, and `LogWriter` service
+* `tracebox::logger::TraceboxLogger`, `LogReader`, and `LogWriter` service
   composition classes.
 * `tracebox::logger::Storage`, `Folder`, and `StreamWriter` storage machinery.
 * `tracebox::logger::FileIO` and `StandardFileIO` file backends.

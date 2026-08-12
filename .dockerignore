@@ -7,6 +7,6 @@ bin
 build
 cmake-build-*
 CMakeFiles
-data_logger.pdf
+tracebox.pdf
 *.profraw
 *.profdata

@@ -8,13 +8,12 @@ target_link_libraries(client_demo LogClient)
 add_executable(reader_demo reader_demo.cpp)
 target_link_libraries(reader_demo LogClient)
 
-add_executable(data_logger logger.cpp)
-add_dependencies(data_logger LogWriter LogReader)
-target_link_libraries(data_logger LogWriter LogReader ${DATA_LOGGER_GFLAGS_TARGET})
+add_executable(tracebox logger.cpp)
+add_dependencies(tracebox LogWriter LogReader)
+target_link_libraries(tracebox LogWriter LogReader ${TRACEBOX_GFLAGS_TARGET})
 
 add_subdirectory(asc_writer)
 include_directories(asc_writer)
 add_executable(get_can get_can.cpp)
 add_dependencies(get_can AscWriter)
-target_link_libraries(get_can LogClient AscWriter ${DATA_LOGGER_GFLAGS_TARGET})
-
+target_link_libraries(get_can LogClient AscWriter ${TRACEBOX_GFLAGS_TARGET})

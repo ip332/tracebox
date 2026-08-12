@@ -27,7 +27,7 @@ class TemporaryDirectory {
         auto suffix = std::to_string(
             std::chrono::steady_clock::now().time_since_epoch().count());
         path_ = std::filesystem::temp_directory_path() /
-                ("data_logger_test_" + suffix);
+                ("tracebox_test_" + suffix);
         if (!std::filesystem::create_directories(path_)) {
             throw std::runtime_error("failed to create test directory");
         }

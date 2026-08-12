@@ -1,20 +1,18 @@
-# Data Logging library
+# Tracebox
 
 [![CI](https://github.com/ip332/tracebox/actions/workflows/ci.yml/badge.svg)](https://github.com/ip332/tracebox/actions/workflows/ci.yml)
 
 This repository contains components to record fixed- and variable- size data pieces in the file system
 and to retrieve data recorded within a given time range.
 
-## Reproducible development environment
+## Supported development environment
 
-The repository includes a Linux Docker environment with the compiler, CMake,
-Protobuf, gflags, GoogleTest, and Ninja dependencies installed.
+Docker is the supported development environment and the authoritative
+development and validation path. It provides a Linux environment with the
+compiler, CMake, Protobuf, gflags, GoogleTest, and Ninja dependencies installed.
 
 ```sh
-docker compose build
-docker compose run --rm dev bash -lc \
-  'cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug && \
-   cmake --build build && ctest --test-dir build --output-on-failure'
+./tools/validate.sh
 ```
 
 For an interactive shell:
@@ -23,8 +21,14 @@ For an interactive shell:
 docker compose run --rm dev
 ```
 
-The source tree is mounted at `/workspace`. The default container user uses
-UID/GID 1000; override `DEV_UID` and `DEV_GID` when needed.
+The source tree is mounted at `/workspace`. The validation container preserves
+the invoking user's UID/GID and uses build directories under
+`/tmp/tracebox-build`.
+
+GitHub Actions invokes the same `tools/validate.sh` workflow. Native CMake
+builds may still be used for downstream integration, packaging, and
+cross-compilation, but they are not the authoritative validation path. See
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for contribution guidance.
 
 GitHub Actions validates Docker image creation plus GCC and Clang configure,
 build, runtime tests, storage-only tests, and the public API test.
@@ -33,13 +37,13 @@ To generate a GCC coverage report inside the container:
 
 ```sh
 docker compose run --rm dev bash -lc \
-  'rm -rf coverage-build && \
-   cmake -S . -B coverage-build -G Ninja \
-     -DDATA_LOGGER_BUILD_RUNTIME=OFF \
+  'rm -rf /tmp/tracebox-build/coverage && \
+   cmake -S . -B /tmp/tracebox-build/coverage -G Ninja \
+     -DTRACEBOX_BUILD_RUNTIME=OFF \
      -DCMAKE_CXX_FLAGS="--coverage" \
      -DCMAKE_EXE_LINKER_FLAGS="--coverage" && \
-   cmake --build coverage-build && \
-   ctest --test-dir coverage-build --output-on-failure && \
+   cmake --build /tmp/tracebox-build/coverage && \
+   ctest --test-dir /tmp/tracebox-build/coverage --output-on-failure && \
    gcovr --root . --filter "libs/(log_reader|log_writer|data_types\\.h)" \
      --exclude "libs/data_protos" --exclude "tests" --txt'
 ```
