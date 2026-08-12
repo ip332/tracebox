@@ -1,58 +1,57 @@
 #pragma once
 
-#include <functional>
+#include <atomic>
 #include <cstdint>
+#include <functional>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
-// Callback to handle an incoming packet with arbitrary data.
-// If it returns non-empty result it will be sent out to the client.
 using data_callback_t =
     std::function<std::string(const std::string_view& data)>;
 
 namespace tracebox {
 namespace logger {
 
-// This class implements a typical TCP/IP tcp_server which uses a single thread
-// to handle all incoming packets.
 class Server {
-    // Make sure that an error in the client's code will not result in an
-    // unlimited number of connections. The real number of clients is still TBD.
+   public:
+    enum class State { kStopped, kStarting, kRunning, kStopping };
+
+   private:
     static constexpr uint8_t kMaxClients = 100;
-    // epoll fd
-    int epoll_fd_;
-    // Thread control.
-    bool running_;
-    // Transport: socket details.
-    int listening_fd_;
-    // File descriptors of all connected clients.
+    int epoll_fd_ = -1;
+    int wakeup_fd_ = -1;
+    int listening_fd_ = -1;
+    uint32_t requested_port_;
+    uint16_t bound_port_ = 0;
     std::vector<int> client_fd_;
-    // Data callback
     data_callback_t callback_;
+    mutable std::mutex lifecycle_mutex_;
+    std::mutex callback_mutex_;
+    std::atomic<State> state_{State::kStopped};
+    std::thread thread_;
 
-    // Initializes the tcp_server and starts a thread to listen for the incoming
-    // requests.
-    bool start(uint32_t port);
-
-    // Registers given fd on the epoll and adds it to the client_fd_ vector.
-    bool registerFd(int fd);
-    // Unregisters the given fd
+    bool registerFd(int fd, bool client);
     void unregisterFd(int fd);
-
-    // Reads the request from the socket and handles it to the callback.
+    void closeClientFds();
+    void closeStartupDescriptors();
+    void run();
     bool handleLogRequest(int fd);
 
    public:
     explicit Server(uint32_t port, data_callback_t cb);
-    virtual ~Server() { stop(); }
+    ~Server();
 
-    // Delete copy / assignment constructors
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
     Server(Server&&) = delete;
     Server& operator=(Server&&) = delete;
 
-    void stop() { running_ = false; }
+    bool start();
+    void stop();
+    State state() const { return state_.load(std::memory_order_acquire); }
+    uint16_t port() const;
 };
 
 }  // namespace logger

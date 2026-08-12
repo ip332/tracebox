@@ -4,34 +4,41 @@ namespace tracebox {
 namespace logger {
 
 void LogWriter::writingThread() {
-    running_ = true;
-    while (running_) {
-        std::unique_ptr<LogRequest> request = wait();
+    while (true) {
+        auto request = wait();
         if (!request) {
-            continue;
+            return;
         }
         storage_->write(*request);
     }
 }
 
 LogWriter::LogWriter(std::shared_ptr<Storage> storage)
-    : storage_(storage), thread_(&LogWriter::writingThread, this) {}
+    : storage_(std::move(storage)), thread_(&LogWriter::writingThread, this) {}
 
-LogWriter::~LogWriter() {
-    running_ = false;
-    force_wakeup_ = true;
-    notify();
+LogWriter::~LogWriter() { stop(); }
+
+void LogWriter::stop() {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        stopping_ = true;
+    }
+    condition_.notify_one();
     if (thread_.joinable()) {
         thread_.join();
     }
 }
 
-void LogWriter::add(const LogRequest& request) {
+bool LogWriter::add(const LogRequest& request) {
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (stopping_) {
+            return false;
+        }
         queue_.push(request);
     }
-    notify();
+    condition_.notify_one();
+    return true;
 }
 
 }  // namespace logger

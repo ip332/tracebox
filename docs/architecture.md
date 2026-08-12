@@ -47,7 +47,7 @@ flowchart LR
 | --- | --- | --- | --- | --- |
 | `data_protos` | Generates protobuf message types | `LogRequest`, `DataStreamsRequest`, `DataStreamsResponse`, `DataPiece`, `DataStream` | Generated types are value-like protobuf objects owned by callers/containers | None |
 | `TcpSocket` | Length-prefix framing and socket timeouts | `sendData()`, `readData()`, `setTimeout()` | Stateless utility; allocates a temporary send buffer or receive string | Caller’s thread |
-| `Server` | Accepts TCP clients, waits with `epoll`, invokes a callback | `Server(port, callback)`, `stop()` | Owns descriptors and a detached server thread | One detached thread per `Server` |
+| `Server` | Accepts TCP clients, waits with `epoll`, invokes a callback | `Server(port, callback)`, `start()`, `stop()` | Owns descriptors and one joinable service thread | Explicit state machine; stop wakes eventfd and joins |
 | `TcpClient` | Connects to a server and exposes framed send/receive | `connect()`, `disconnect()`, `sendData()`, `readData()` | Owns one client socket; non-copyable | Caller’s thread |
 | `LogClient` | Builds and sends logging protobufs | `logData()` | Inherits socket ownership from `TcpClient` | Caller’s thread |
 | `LogReadClient` | Builds read requests and parses responses | `getStreams()`, `getData()` | Inherits socket ownership from `TcpClient` | Caller’s thread |
@@ -356,21 +356,33 @@ provided client normally supplies `UINT32_MAX` explicitly.
 
 | Thread | Created by | Work | Shutdown |
 | --- | --- | --- | --- |
-| Write worker | `LogWriter` constructor | Waits on queue and calls `Storage::write()` | Destructor sets flags, wakes the condition variable, and joins |
-| TCP service thread | `Server::start()` | Detached thread runs `epoll_wait`, accepts clients, reads frames, invokes callback | `stop()` sets `running_ = false`; loop timeout is up to one second, then descriptors are closed by the detached thread |
+| Write worker | `LogWriter` constructor | Waits on queue and calls `Storage::write()` | Shutdown stops admission, drains the queue, and joins |
+| TCP service thread | `Server::start()` | Owned thread runs `epoll_wait`, accepts clients, reads frames, invokes callback | `stop()` changes state, writes eventfd, closes clients, and joins |
 | Caller threads | Applications | Client calls, input loops, or sample main loops | Application-controlled |
 
-The server’s `client_fd_` vector is owned by the detached server thread during
-normal event processing. `registerFd()` and `unregisterFd()` are called from
-that same thread after startup registration. There are no locks around the
-server state.
+`Server` has explicit `kStopped`, `kStarting`, `kRunning`, and `kStopping`
+states. Construction does not start the endpoint; `TraceboxLogger` and
+`LogReader` start their server only after their callback target and dependent
+state have been constructed. `start()` is false unless the state is stopped,
+and a completed `stop()` permits a subsequent restart.
 
-The write queue protects `queue_` with `mutex_`; `condition_` coordinates
-sleeping and notification. `running_` and `force_wakeup_` are accessed by the
-destructor and worker without the same mutex, so the shutdown path has a data
-race in the C++ memory model. `Server::stop()` similarly writes `running_`
-without synchronization, and the detached thread captures `this`; destruction
-can return before that thread has stopped using the object.
+The `Server` object owns the listening, epoll, eventfd, and accepted-client
+descriptors. Startup creates and registers epoll/eventfd/listener resources;
+every partial failure closes all resources. The service thread exclusively
+maintains the accepted-client collection during operation. `stop()` enters
+stopping, writes the eventfd, and joins; the worker then removes and closes
+every active client and the listener before the owner closes eventfd and epoll.
+No polling timeout or detached work remains. A callback already in progress is
+allowed to finish; no callback starts after the stopping state is observed,
+and callback exceptions close only the affected client.
+
+`LogWriter` protects both `stopping_` and `queue_` with `mutex_`. `add()`
+returns true only when it admits a request. Once `stop()` sets `stopping_`,
+new entries are rejected, the condition variable wakes the worker, every
+accepted entry is written, and the worker is joined. Repeated `stop()` calls
+are safe. The public `Writer::add()` remains void, so its existing API cannot
+report admission rejection; the internal logger callback ignores that result
+as before.
 
 ## Memory usage
 
@@ -463,29 +475,24 @@ a platform abstraction.
 
 ## Risks and design-review findings
 
-1. **Shutdown lifetime risk.** Detached `Server` threads capture `this`, and
-   `stop()` does not join or synchronize with them. Service destruction can
-   race with callbacks and descriptor cleanup.
-2. **Shutdown data race.** `LogWriter::running_`, `force_wakeup_`, and the
-   server’s `running_` are not atomic or consistently protected.
-3. **No durability acknowledgement.** A successful log client send does not
+1. **No durability acknowledgement.** A successful log client send does not
    indicate queue acceptance, disk write success, or durable media state.
-4. **Unbounded memory.** Queue depth, TCP payload size, reader response size,
+2. **Unbounded memory.** Queue depth, TCP payload size, reader response size,
    and combiner retention are not bounded.
-5. **Wire-format portability.** Length prefixes and packed storage records use
+3. **Wire-format portability.** Length prefixes and packed storage records use
    native byte order and ABI layout.
-6. **Weak corruption model.** File size and header checks are partial; offsets,
+4. **Weak corruption model.** File size and header checks are partial; offsets,
    record boundaries, duplicated timestamps, and trailing partial records are
    not comprehensively validated. Malformed variable lengths/offsets and
    truncated payloads now fail closed, but no checksums or startup recovery
    exist.
-7. **Query cost.** Every stream discovery query scans directories and opens
+5. **Query cost.** Every stream discovery query scans directories and opens
    candidate index files; data retrieval walks records linearly.
-8. **Retention accounting.** The estimate is intentionally conservative and
+6. **Retention accounting.** The estimate is intentionally conservative and
    retention is day-granular; a write can cause a large synchronous delete.
-9. **Time-zone coupling.** Day partitioning depends on process-local timezone
+7. **Time-zone coupling.** Day partitioning depends on process-local timezone
    state and non-thread-safe `localtime()` APIs.
-10. **Protocol behavior edge cases.** The native framing has no maximum length
+8. **Protocol behavior edge cases.** The native framing has no maximum length
     or version field, and omitted read `max_count` is interpreted as zero by
     the server path.
 
