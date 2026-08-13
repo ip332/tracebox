@@ -34,4 +34,9 @@ if (TRACEBOX_BUILD_RUNTIME)
     target_include_directories(tracebox_lifecycle_tests PRIVATE
                                ${CMAKE_SOURCE_DIR}/libs/log_reader)
     gtest_discover_tests(tracebox_lifecycle_tests)
+
+    add_executable(tracebox_tcp_client_tests tcp_client_lifecycle_test.cpp)
+    target_link_libraries(tracebox_tcp_client_tests PRIVATE LogClient TcpServer
+                          GTest::gtest_main)
+    gtest_discover_tests(tracebox_tcp_client_tests)
 endif()

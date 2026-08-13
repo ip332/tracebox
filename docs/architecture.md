@@ -48,7 +48,7 @@ flowchart LR
 | `data_protos` | Generates protobuf message types | `LogRequest`, `DataStreamsRequest`, `DataStreamsResponse`, `DataPiece`, `DataStream` | Generated types are value-like protobuf objects owned by callers/containers | None |
 | `TcpSocket` | Length-prefix framing and socket timeouts | `sendData()`, `readData()`, `setTimeout()` | Stateless utility; allocates a temporary send buffer or receive string | Caller’s thread |
 | `Server` | Accepts TCP clients, waits with `epoll`, invokes a callback | `Server(port, callback)`, `start()`, `stop()` | Owns descriptors and one joinable service thread | Explicit state machine; stop wakes eventfd and joins |
-| `TcpClient` | Connects to a server and exposes framed send/receive | `connect()`, `disconnect()`, `sendData()`, `readData()` | Owns one client socket; non-copyable | Caller’s thread |
+| `TcpClient` | Connects to a server and exposes framed send/receive | `connect()`, `disconnect()`, `sendData()`, `readData()` | Owns one client socket; non-copyable; `-1` means disconnected | Caller’s thread |
 | `LogClient` | Builds and sends logging protobufs | `logData()` | Inherits socket ownership from `TcpClient` | Caller’s thread |
 | `LogReadClient` | Builds read requests and parses responses | `getStreams()`, `getData()` | Inherits socket ownership from `TcpClient` | Caller’s thread |
 | `TraceboxLogger` | Write-service façade and request parser | Constructor starts service; private `handleLogRequest()` | Owns a `Server` and a `LogWriter`; non-copyable | Callback runs on `Server` thread; enqueue is synchronized |
@@ -323,6 +323,15 @@ Sockets use POSIX APIs, `SO_SNDTIMEO`/`SO_RCVTIMEO`, `MSG_NOSIGNAL`, and numeric
 IPv4 parsing through `inet_aton()`. There is no TLS, authentication, access
 control, compression, negotiated version, maximum declared payload size, or
 cross-endian framing.
+
+`TcpClient` owns exactly one descriptor. `connect()` first disconnects any
+existing descriptor, validates a port in 1..65535, and keeps a local RAII
+descriptor until address parsing, timeout setup, and synchronous connection
+succeed. Only then is the descriptor transferred to the client. Failed attempts
+therefore leave the client disconnected and close every created descriptor;
+`connect()` retries only `EINTR`. `disconnect()` is idempotent and treats fd 0
+as valid. Client `SO_SNDTIMEO` and `SO_RCVTIMEO` setup failures are fatal to the
+connection attempt; no automatic reconnection or retry policy is added.
 
 ### Services and protobuf interaction
 
