@@ -1,7 +1,6 @@
 #pragma once
 
-#include <unistd.h>
-
+#include <cstdint>
 #include <string>
 
 #include "tcp_socket.h"
@@ -15,7 +14,7 @@ class TcpClient {
     int fd_ = -1;
 
    public:
-    TcpClient() {}
+    TcpClient() = default;
 
     virtual ~TcpClient() { disconnect(); }
 
@@ -30,14 +29,15 @@ class TcpClient {
     // data it needs to log.
     bool connect(const std::string& ip, uint32_t port);
 
-    bool is_connected() const { return fd_ > 0; }
+    bool is_connected() const { return fd_ >= 0; }
 
     // Closes connections to the tcp_server.
     void disconnect() {
-        if (fd_ > 0) {
-            close(fd_);
-        }
+        const int fd = fd_;
         fd_ = -1;
+        if (fd >= 0) {
+            close(fd);
+        }
     }
 
     void setTimeout(int sec, int usec) {

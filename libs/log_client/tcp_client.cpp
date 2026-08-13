@@ -1,46 +1,88 @@
 #include "tcp_client.h"
 
 #include <arpa/inet.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
-#include <cstring>
-#include <iostream>
+#include <unistd.h>
 
 namespace tracebox {
 namespace logger {
 
-bool TcpClient::connect(const std::string &ip_addr, uint32_t port) {
-    if (fd_ > 0) {
+namespace {
+
+class ScopedFd {
+   public:
+    explicit ScopedFd(int fd) : fd_(fd) {}
+    ~ScopedFd() {
+        if (fd_ >= 0) {
+            close(fd_);
+        }
+    }
+
+    ScopedFd(const ScopedFd&) = delete;
+    ScopedFd& operator=(const ScopedFd&) = delete;
+
+    int get() const { return fd_; }
+    int release() {
+        const int fd = fd_;
+        fd_ = -1;
+        return fd;
+    }
+
+   private:
+    int fd_;
+};
+
+bool setClientTimeouts(int fd) {
+    timeval timeout{};
+    timeout.tv_sec = 2;
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
         return false;
     }
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
-    // Initialize client address/port struct
-    if (fd < 0) {
-        std::cerr << "Error creating a client's socket, errno: " << errno
-                  << std::endl;
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
         return false;
     }
-    sockaddr_in dest;
-    memset(&dest, 0, sizeof(dest));
-    dest.sin_family = AF_INET;
-    dest.sin_port = htons((uint16_t)port);
-    if (!inet_aton(ip_addr.c_str(), &dest.sin_addr)) {
-        std::cerr << "Error parsing tcp_server address " << ip_addr
-                  << ", errno: " << errno << std::endl;
-        disconnect();
+    return true;
+}
+
+}  // namespace
+
+bool TcpClient::connect(const std::string& ip_addr, uint32_t port) {
+    disconnect();
+
+    if (port == 0 || port > 65535) {
         return false;
     }
-    // Limit connecting/sending attempt by 1 seconds
-    TcpSocket::setTimeout(fd);
-    if (::connect(fd, (struct sockaddr *)&dest, sizeof(dest))) {
-        // Do not print an error message and let the application deciding if it
-        // is needed or not.
-        std::cerr << "Error: " << errno << std::endl;
-        disconnect();
-        return -1;
+
+    ScopedFd fd(socket(AF_INET, SOCK_STREAM, 0));
+    if (fd.get() < 0) {
+        return false;
     }
-    fd_ = fd;
+
+    sockaddr_in destination{};
+    destination.sin_family = AF_INET;
+    destination.sin_port = htons(static_cast<uint16_t>(port));
+    if (inet_aton(ip_addr.c_str(), &destination.sin_addr) == 0) {
+        return false;
+    }
+
+    // These options are required for the synchronous client. Failure aborts
+    // the attempt; ScopedFd closes the local descriptor.
+    if (!setClientTimeouts(fd.get())) {
+        return false;
+    }
+
+    int result = -1;
+    do {
+        result = ::connect(fd.get(), reinterpret_cast<sockaddr*>(&destination),
+                           sizeof(destination));
+    } while (result < 0 && errno == EINTR);
+    if (result < 0) {
+        return false;
+    }
+
+    fd_ = fd.release();
     return true;
 }
 
