@@ -39,4 +39,9 @@ if (TRACEBOX_BUILD_RUNTIME)
     target_link_libraries(tracebox_tcp_client_tests PRIVATE LogClient TcpServer
                           GTest::gtest_main)
     gtest_discover_tests(tracebox_tcp_client_tests)
+
+    add_executable(tracebox_tcp_framing_tests tcp_framing_test.cpp)
+    target_link_libraries(tracebox_tcp_framing_tests PRIVATE TcpServer
+                          GTest::gtest_main)
+    gtest_discover_tests(tracebox_tcp_framing_tests)
 endif()

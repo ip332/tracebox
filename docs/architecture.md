@@ -313,11 +313,15 @@ uint32_t payload_size   # native host byte order
 payload_size bytes      # protobuf serialization
 ```
 
-The sender constructs one contiguous buffer and calls `send()` once. A short
-send is treated as failure. The receiver reads the four-byte length and then
-loops until the payload is complete. A zero-length decoded string is used as an
-error signal, which makes an actual empty application payload indistinguishable
-from failure at this layer.
+The sender constructs one contiguous buffer and loops on `send()` until the
+entire frame is transmitted. Successful partial writes continue with the
+unsent suffix; `EINTR` is retried, while zero-byte results, peer disconnects,
+and other errors fail the operation. `MSG_NOSIGNAL` prevents a failed send
+from terminating the process with `SIGPIPE`. The receiver accumulates the
+four-byte length across reads and then loops until the payload is complete,
+retrying `EINTR` and treating EOF or other errors as failure. A zero-length
+decoded string is still used as an error signal, which makes an actual empty
+application payload indistinguishable from failure at this layer.
 
 Sockets use POSIX APIs, `SO_SNDTIMEO`/`SO_RCVTIMEO`, `MSG_NOSIGNAL`, and numeric
 IPv4 parsing through `inet_aton()`. There is no TLS, authentication, access

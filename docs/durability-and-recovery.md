@@ -111,7 +111,7 @@ The implementation has several different completion points:
 | Event | What is established | What is not established |
 | --- | --- | --- |
 | `Writer::add()` returns | Request copied into the in-process queue | Worker processing, file write, kernel page-cache acceptance, or persistence |
-| `Recorder::record()` returns true | One framed message was accepted by the client `send()` call | Server parse, queue acceptance, storage write, or persistence |
+| `Recorder::record()` returns true | One complete framed message was transmitted by the client socket write loop | Server parse, queue acceptance, storage write, or persistence |
 | `Storage::write()` returns positive | File stream write calls reported success; some bytes may have been buffered | `fsync`, filesystem metadata persistence, device persistence, or power-fail safety |
 | Periodic `flush()` completes | C++ stream buffers were flushed toward the OS | Filesystem metadata/device cache synchronization |
 | `StreamWriter` closes normally | C++ streams were flushed and closed | Stable media persistence without an explicit sync primitive |
